@@ -34154,7 +34154,7 @@ var mapping = {
   6: 6,
   7: 7
 };
-var scale = [0, 2, 4, 5, 7, 9, 10];
+var scale = [0, 2, 4, 5, 7, 9, 11];
 function getMetadata(input2) {
   const [metadataRaw, ...linesRaw] = input2.split("\n#");
   return metadataRaw?.startsWith("#") ? {
