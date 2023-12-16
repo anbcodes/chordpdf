@@ -29694,7 +29694,7 @@ function renderOnto(pdf, input2, key2, fontSize = 13) {
       let chords2 = [...line.chords.matchAll(/[^ ]+/g)].map((v3) => ({ i: v3.index, c: v3[0] }));
       let curr = "";
       let rendered = [];
-      pdf.setFontSize(fontSize - 1);
+      pdf.setFontSize(fontSize);
       pdf.setFont("helvetica", "normal");
       if (line.lyrics.length < line.chords.length) {
         line.lyrics += " ".repeat(line.chords.length - line.lyrics.length);

@@ -177,7 +177,7 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string, fontSize = 1
       let chords = [...line.chords.matchAll(/[^ ]+/g)].map(v => ({i: v.index, c: v[0]}))
       let curr = ''; 
       let rendered: {chord: string, len: number}[] = [];
-      pdf.setFontSize(fontSize - 1);
+      pdf.setFontSize(fontSize);
       pdf.setFont('helvetica', 'normal');
       if (line.lyrics.length < line.chords.length) {
         line.lyrics += ' '.repeat(line.chords.length - line.lyrics.length)
