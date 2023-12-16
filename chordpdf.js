@@ -25,6 +25,228 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// node_modules/minimist/index.js
+var require_minimist = __commonJS({
+  "node_modules/minimist/index.js"(exports, module2) {
+    "use strict";
+    function hasKey(obj, keys) {
+      var o = obj;
+      keys.slice(0, -1).forEach(function(key3) {
+        o = o[key3] || {};
+      });
+      var key2 = keys[keys.length - 1];
+      return key2 in o;
+    }
+    function isNumber(x) {
+      if (typeof x === "number") {
+        return true;
+      }
+      if (/^0x[0-9a-f]+$/i.test(x)) {
+        return true;
+      }
+      return /^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(e[-+]?\d+)?$/.test(x);
+    }
+    function isConstructorOrProto(obj, key2) {
+      return key2 === "constructor" && typeof obj[key2] === "function" || key2 === "__proto__";
+    }
+    module2.exports = function(args2, opts) {
+      if (!opts) {
+        opts = {};
+      }
+      var flags = {
+        bools: {},
+        strings: {},
+        unknownFn: null
+      };
+      if (typeof opts.unknown === "function") {
+        flags.unknownFn = opts.unknown;
+      }
+      if (typeof opts.boolean === "boolean" && opts.boolean) {
+        flags.allBools = true;
+      } else {
+        [].concat(opts.boolean).filter(Boolean).forEach(function(key3) {
+          flags.bools[key3] = true;
+        });
+      }
+      var aliases = {};
+      function aliasIsBoolean(key3) {
+        return aliases[key3].some(function(x) {
+          return flags.bools[x];
+        });
+      }
+      Object.keys(opts.alias || {}).forEach(function(key3) {
+        aliases[key3] = [].concat(opts.alias[key3]);
+        aliases[key3].forEach(function(x) {
+          aliases[x] = [key3].concat(aliases[key3].filter(function(y) {
+            return x !== y;
+          }));
+        });
+      });
+      [].concat(opts.string).filter(Boolean).forEach(function(key3) {
+        flags.strings[key3] = true;
+        if (aliases[key3]) {
+          [].concat(aliases[key3]).forEach(function(k) {
+            flags.strings[k] = true;
+          });
+        }
+      });
+      var defaults = opts.default || {};
+      var argv = { _: [] };
+      function argDefined(key3, arg2) {
+        return flags.allBools && /^--[^=]+$/.test(arg2) || flags.strings[key3] || flags.bools[key3] || aliases[key3];
+      }
+      function setKey(obj, keys, value2) {
+        var o = obj;
+        for (var i2 = 0; i2 < keys.length - 1; i2++) {
+          var key3 = keys[i2];
+          if (isConstructorOrProto(o, key3)) {
+            return;
+          }
+          if (o[key3] === void 0) {
+            o[key3] = {};
+          }
+          if (o[key3] === Object.prototype || o[key3] === Number.prototype || o[key3] === String.prototype) {
+            o[key3] = {};
+          }
+          if (o[key3] === Array.prototype) {
+            o[key3] = [];
+          }
+          o = o[key3];
+        }
+        var lastKey = keys[keys.length - 1];
+        if (isConstructorOrProto(o, lastKey)) {
+          return;
+        }
+        if (o === Object.prototype || o === Number.prototype || o === String.prototype) {
+          o = {};
+        }
+        if (o === Array.prototype) {
+          o = [];
+        }
+        if (o[lastKey] === void 0 || flags.bools[lastKey] || typeof o[lastKey] === "boolean") {
+          o[lastKey] = value2;
+        } else if (Array.isArray(o[lastKey])) {
+          o[lastKey].push(value2);
+        } else {
+          o[lastKey] = [o[lastKey], value2];
+        }
+      }
+      function setArg(key3, val, arg2) {
+        if (arg2 && flags.unknownFn && !argDefined(key3, arg2)) {
+          if (flags.unknownFn(arg2) === false) {
+            return;
+          }
+        }
+        var value2 = !flags.strings[key3] && isNumber(val) ? Number(val) : val;
+        setKey(argv, key3.split("."), value2);
+        (aliases[key3] || []).forEach(function(x) {
+          setKey(argv, x.split("."), value2);
+        });
+      }
+      Object.keys(flags.bools).forEach(function(key3) {
+        setArg(key3, defaults[key3] === void 0 ? false : defaults[key3]);
+      });
+      var notFlags = [];
+      if (args2.indexOf("--") !== -1) {
+        notFlags = args2.slice(args2.indexOf("--") + 1);
+        args2 = args2.slice(0, args2.indexOf("--"));
+      }
+      for (var i = 0; i < args2.length; i++) {
+        var arg = args2[i];
+        var key2;
+        var next;
+        if (/^--.+=/.test(arg)) {
+          var m = arg.match(/^--([^=]+)=([\s\S]*)$/);
+          key2 = m[1];
+          var value = m[2];
+          if (flags.bools[key2]) {
+            value = value !== "false";
+          }
+          setArg(key2, value, arg);
+        } else if (/^--no-.+/.test(arg)) {
+          key2 = arg.match(/^--no-(.+)/)[1];
+          setArg(key2, false, arg);
+        } else if (/^--.+/.test(arg)) {
+          key2 = arg.match(/^--(.+)/)[1];
+          next = args2[i + 1];
+          if (next !== void 0 && !/^(-|--)[^-]/.test(next) && !flags.bools[key2] && !flags.allBools && (aliases[key2] ? !aliasIsBoolean(key2) : true)) {
+            setArg(key2, next, arg);
+            i += 1;
+          } else if (/^(true|false)$/.test(next)) {
+            setArg(key2, next === "true", arg);
+            i += 1;
+          } else {
+            setArg(key2, flags.strings[key2] ? "" : true, arg);
+          }
+        } else if (/^-[^-]+/.test(arg)) {
+          var letters = arg.slice(1, -1).split("");
+          var broken = false;
+          for (var j = 0; j < letters.length; j++) {
+            next = arg.slice(j + 2);
+            if (next === "-") {
+              setArg(letters[j], next, arg);
+              continue;
+            }
+            if (/[A-Za-z]/.test(letters[j]) && next[0] === "=") {
+              setArg(letters[j], next.slice(1), arg);
+              broken = true;
+              break;
+            }
+            if (/[A-Za-z]/.test(letters[j]) && /-?\d+(\.\d*)?(e-?\d+)?$/.test(next)) {
+              setArg(letters[j], next, arg);
+              broken = true;
+              break;
+            }
+            if (letters[j + 1] && letters[j + 1].match(/\W/)) {
+              setArg(letters[j], arg.slice(j + 2), arg);
+              broken = true;
+              break;
+            } else {
+              setArg(letters[j], flags.strings[letters[j]] ? "" : true, arg);
+            }
+          }
+          key2 = arg.slice(-1)[0];
+          if (!broken && key2 !== "-") {
+            if (args2[i + 1] && !/^(-|--)[^-]/.test(args2[i + 1]) && !flags.bools[key2] && (aliases[key2] ? !aliasIsBoolean(key2) : true)) {
+              setArg(key2, args2[i + 1], arg);
+              i += 1;
+            } else if (args2[i + 1] && /^(true|false)$/.test(args2[i + 1])) {
+              setArg(key2, args2[i + 1] === "true", arg);
+              i += 1;
+            } else {
+              setArg(key2, flags.strings[key2] ? "" : true, arg);
+            }
+          }
+        } else {
+          if (!flags.unknownFn || flags.unknownFn(arg) !== false) {
+            argv._.push(flags.strings._ || !isNumber(arg) ? arg : Number(arg));
+          }
+          if (opts.stopEarly) {
+            argv._.push.apply(argv._, args2.slice(i + 1));
+            break;
+          }
+        }
+      }
+      Object.keys(defaults).forEach(function(k) {
+        if (!hasKey(argv, k.split("."))) {
+          setKey(argv, k.split("."), defaults[k]);
+          (aliases[k] || []).forEach(function(x) {
+            setKey(argv, x.split("."), defaults[k]);
+          });
+        }
+      });
+      if (opts["--"]) {
+        argv["--"] = notFlags.slice();
+      } else {
+        notFlags.forEach(function(k) {
+          argv._.push(k);
+        });
+      }
+      return argv;
+    };
+  }
+});
+
 // node_modules/fflate/lib/node-worker.js
 var require_node_worker = __commonJS({
   "node_modules/fflate/lib/node-worker.js"(exports) {
@@ -40,8 +262,8 @@ var require_node_worker = __commonJS({
       var done = false;
       var w = new Worker(c + workerAdd, { eval: true }).on("error", function(e) {
         return cb(e, null);
-      }).on("message", function(m2) {
-        return cb(null, m2);
+      }).on("message", function(m) {
+        return cb(null, m);
       }).on("exit", function(c2) {
         if (c2 && !done)
           cb(new Error("exited with code " + c2), null);
@@ -196,7 +418,7 @@ var require_lib = __commonJS({
             var sv = i2 << 4 | cd[i2];
             var r_1 = mb - cd[i2];
             var v = le[cd[i2] - 1]++ << r_1;
-            for (var m2 = v | (1 << r_1) - 1; v <= m2; ++v) {
+            for (var m = v | (1 << r_1) - 1; v <= m; ++v) {
               co[rev[v] >>> rvb] = sv;
             }
           }
@@ -230,16 +452,16 @@ var require_lib = __commonJS({
     var fdm = /* @__PURE__ */ hMap(fdt, 5, 0);
     var fdrm = /* @__PURE__ */ hMap(fdt, 5, 1);
     var max = function(a) {
-      var m2 = a[0];
+      var m = a[0];
       for (var i2 = 1; i2 < a.length; ++i2) {
-        if (a[i2] > m2)
-          m2 = a[i2];
+        if (a[i2] > m)
+          m = a[i2];
       }
-      return m2;
+      return m;
     };
-    var bits = function(d, p, m2) {
+    var bits = function(d, p, m) {
       var o = p / 8 >> 0;
-      return (d[o] | d[o + 1] << 8) >>> (p & 7) & m2;
+      return (d[o] | d[o + 1] << 8) >>> (p & 7) & m;
     };
     var bits16 = function(d, p) {
       var o = p / 8 >> 0;
@@ -707,15 +929,15 @@ var require_lib = __commonJS({
       var a = 1, b = 0;
       return {
         p: function(d) {
-          var n = a, m2 = b;
+          var n = a, m = b;
           var l = d.length;
           for (var i2 = 0; i2 != l; ) {
             var e = Math.min(i2 + 5552, l);
             for (; i2 < e; ++i2)
-              n += d[i2], m2 += n;
-            n %= 65521, m2 %= 65521;
+              n += d[i2], m += n;
+            n %= 65521, m %= 65521;
           }
-          a = n, b = m2;
+          a = n, b = m;
         },
         d: function() {
           return (a >>> 8 << 16 | (b & 255) << 8 | b >>> 8) + ((a & 255) << 23) * 2;
@@ -770,10 +992,10 @@ var require_lib = __commonJS({
     var wrkr = function(fns, init, id, cb) {
       var _a2;
       if (!ch[id]) {
-        var fnStr = "", td_1 = {}, m2 = fns.length - 1;
-        for (var i2 = 0; i2 < m2; ++i2)
+        var fnStr = "", td_1 = {}, m = fns.length - 1;
+        for (var i2 = 0; i2 < m; ++i2)
           _a2 = wcln(fns[i2], fnStr, td_1), fnStr = _a2[0], td_1 = _a2[1];
-        ch[id] = wcln(fns[m2], fnStr, td_1);
+        ch[id] = wcln(fns[m], fnStr, td_1);
       }
       var td = mrg({}, ch[id][1]);
       return node_worker_1["default"](ch[id][0] + ";onmessage=function(e){for(var k in e.data)self[k]=e.data[k];onmessage=" + init.toString() + "}", id, td, cbfs(td), cb);
@@ -1401,10 +1623,10 @@ var require_lib = __commonJS({
       d[b] = 20, b += 2;
       d[b++] = t == 8 && (o.level == 1 ? 6 : o.level < 6 ? 4 : o.level == 9 ? 2 : 0), d[b++] = u && 8;
       d[b] = t, b += 2;
-      var dt = new Date(o.mtime || Date.now()), y2 = dt.getFullYear() - 1980;
-      if (y2 < 0 || y2 > 119)
+      var dt = new Date(o.mtime || Date.now()), y = dt.getFullYear() - 1980;
+      if (y < 0 || y > 119)
         throw "date not in range 1980-2099";
-      wbytes(d, b, (y2 << 24) * 2 | dt.getMonth() + 1 << 21 | dt.getDate() << 16 | dt.getHours() << 11 | dt.getMinutes() << 5 | dt.getSeconds() >>> 1);
+      wbytes(d, b, (y << 24) * 2 | dt.getMonth() + 1 << 21 | dt.getDate() << 16 | dt.getHours() << 11 | dt.getMinutes() << 5 | dt.getSeconds() >>> 1);
       b += 4;
       wbytes(d, b, c);
       wbytes(d, b + 4, l);
@@ -1459,7 +1681,7 @@ var require_lib = __commonJS({
       var _loop_1 = function(i3) {
         var fn = k[i3];
         var _a2 = r[fn], file = _a2[0], p = _a2[1];
-        var c = crc(), m2 = file.length;
+        var c = crc(), m = file.length;
         c.p(file);
         var n = strToU8(fn), s = n.length;
         var t = p.level == 0 ? 0 : 8;
@@ -1472,7 +1694,7 @@ var require_lib = __commonJS({
             files[i3] = {
               t,
               d,
-              m: m2,
+              m,
               c: c.d(),
               u: fn.length != l,
               n,
@@ -1488,7 +1710,7 @@ var require_lib = __commonJS({
           cbl("filename too long", null);
         if (!t)
           cbl(null, file);
-        else if (m2 < 16e4) {
+        else if (m < 16e4) {
           try {
             cbl(null, deflateSync(file, p));
           } catch (e) {
@@ -1744,7 +1966,7 @@ var require_html2canvas = __commonJS({
           if (t[0] & 1)
             throw t[1];
           return t[1];
-        }, trys: [], ops: [] }, f2, y2, t, g;
+        }, trys: [], ops: [] }, f2, y, t, g;
         return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() {
           return this;
         }), g;
@@ -1758,9 +1980,9 @@ var require_html2canvas = __commonJS({
             throw new TypeError("Generator is already executing.");
           while (_)
             try {
-              if (f2 = 1, y2 && (t = op[0] & 2 ? y2["return"] : op[0] ? y2["throw"] || ((t = y2["return"]) && t.call(y2), 0) : y2.next) && !(t = t.call(y2, op[1])).done)
+              if (f2 = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done)
                 return t;
-              if (y2 = 0, t)
+              if (y = 0, t)
                 op = [op[0] & 2, t.value];
               switch (op[0]) {
                 case 0:
@@ -1772,7 +1994,7 @@ var require_html2canvas = __commonJS({
                   return { value: op[1], done: false };
                 case 5:
                   _.label++;
-                  y2 = op[1];
+                  y = op[1];
                   op = [0];
                   continue;
                 case 7:
@@ -1806,7 +2028,7 @@ var require_html2canvas = __commonJS({
               op = body.call(thisArg, _);
             } catch (e2) {
               op = [6, e2];
-              y2 = 0;
+              y = 0;
             } finally {
               f2 = t = 0;
             }
@@ -1835,8 +2057,8 @@ var require_html2canvas = __commonJS({
             this.width = width;
             this.height = height;
           }
-          Bounds2.prototype.add = function(x, y2, w, h) {
-            return new Bounds2(this.left + x, this.top + y2, this.width + w, this.height + h);
+          Bounds2.prototype.add = function(x, y, w, h) {
+            return new Bounds2(this.left + x, this.top + y, this.width + w, this.height + h);
           };
           Bounds2.fromClientRect = function(context, clientRect) {
             return new Bounds2(clientRect.left + context.windowBounds.left, clientRect.top + context.windowBounds.top, clientRect.width, clientRect.height);
@@ -3261,8 +3483,8 @@ var require_html2canvas = __commonJS({
         flags: FLAG_INTEGER
       };
       var getAbsoluteValueForTuple = function(tuple, width, height) {
-        var x = tuple[0], y2 = tuple[1];
-        return [getAbsoluteValue(x, width), getAbsoluteValue(typeof y2 !== "undefined" ? y2 : x, height)];
+        var x = tuple[0], y = tuple[1];
+        return [getAbsoluteValue(x, width), getAbsoluteValue(typeof y !== "undefined" ? y : x, height)];
       };
       var getAbsoluteValue = function(token, parent) {
         if (token.type === 16) {
@@ -3711,8 +3933,8 @@ var require_html2canvas = __commonJS({
         var centerX = width / 2;
         var centerY = height / 2;
         var x = getAbsoluteValue(corner[0], width) - centerX;
-        var y2 = centerY - getAbsoluteValue(corner[1], height);
-        return (Math.atan2(y2, x) + Math.PI * 2) % (Math.PI * 2);
+        var y = centerY - getAbsoluteValue(corner[1], height);
+        return (Math.atan2(y, x) + Math.PI * 2) % (Math.PI * 2);
       };
       var calculateGradientDirection = function(angle2, width, height) {
         var radian = typeof angle2 === "number" ? angle2 : getAngleFromCorner(angle2, width, height);
@@ -3727,7 +3949,7 @@ var require_html2canvas = __commonJS({
       var distance = function(a2, b) {
         return Math.sqrt(a2 * a2 + b * b);
       };
-      var findCorner = function(width, height, x, y2, closest) {
+      var findCorner = function(width, height, x, y, closest) {
         var corners = [
           [0, 0],
           [0, height],
@@ -3736,7 +3958,7 @@ var require_html2canvas = __commonJS({
         ];
         return corners.reduce(function(stat, corner) {
           var cx = corner[0], cy = corner[1];
-          var d = distance(x - cx, y2 - cy);
+          var d = distance(x - cx, y - cy);
           if (closest ? d < stat.optimumDistance : d > stat.optimumDistance) {
             return {
               optimumCorner: corner,
@@ -3749,43 +3971,43 @@ var require_html2canvas = __commonJS({
           optimumCorner: null
         }).optimumCorner;
       };
-      var calculateRadius = function(gradient, x, y2, width, height) {
+      var calculateRadius = function(gradient, x, y, width, height) {
         var rx = 0;
         var ry = 0;
         switch (gradient.size) {
           case 0:
             if (gradient.shape === 0) {
-              rx = ry = Math.min(Math.abs(x), Math.abs(x - width), Math.abs(y2), Math.abs(y2 - height));
+              rx = ry = Math.min(Math.abs(x), Math.abs(x - width), Math.abs(y), Math.abs(y - height));
             } else if (gradient.shape === 1) {
               rx = Math.min(Math.abs(x), Math.abs(x - width));
-              ry = Math.min(Math.abs(y2), Math.abs(y2 - height));
+              ry = Math.min(Math.abs(y), Math.abs(y - height));
             }
             break;
           case 2:
             if (gradient.shape === 0) {
-              rx = ry = Math.min(distance(x, y2), distance(x, y2 - height), distance(x - width, y2), distance(x - width, y2 - height));
+              rx = ry = Math.min(distance(x, y), distance(x, y - height), distance(x - width, y), distance(x - width, y - height));
             } else if (gradient.shape === 1) {
-              var c = Math.min(Math.abs(y2), Math.abs(y2 - height)) / Math.min(Math.abs(x), Math.abs(x - width));
-              var _a = findCorner(width, height, x, y2, true), cx = _a[0], cy = _a[1];
-              rx = distance(cx - x, (cy - y2) / c);
+              var c = Math.min(Math.abs(y), Math.abs(y - height)) / Math.min(Math.abs(x), Math.abs(x - width));
+              var _a = findCorner(width, height, x, y, true), cx = _a[0], cy = _a[1];
+              rx = distance(cx - x, (cy - y) / c);
               ry = c * rx;
             }
             break;
           case 1:
             if (gradient.shape === 0) {
-              rx = ry = Math.max(Math.abs(x), Math.abs(x - width), Math.abs(y2), Math.abs(y2 - height));
+              rx = ry = Math.max(Math.abs(x), Math.abs(x - width), Math.abs(y), Math.abs(y - height));
             } else if (gradient.shape === 1) {
               rx = Math.max(Math.abs(x), Math.abs(x - width));
-              ry = Math.max(Math.abs(y2), Math.abs(y2 - height));
+              ry = Math.max(Math.abs(y), Math.abs(y - height));
             }
             break;
           case 3:
             if (gradient.shape === 0) {
-              rx = ry = Math.max(distance(x, y2), distance(x, y2 - height), distance(x - width, y2), distance(x - width, y2 - height));
+              rx = ry = Math.max(distance(x, y), distance(x, y - height), distance(x - width, y), distance(x - width, y - height));
             } else if (gradient.shape === 1) {
-              var c = Math.max(Math.abs(y2), Math.abs(y2 - height)) / Math.max(Math.abs(x), Math.abs(x - width));
-              var _b = findCorner(width, height, x, y2, false), cx = _b[0], cy = _b[1];
-              rx = distance(cx - x, (cy - y2) / c);
+              var c = Math.max(Math.abs(y), Math.abs(y - height)) / Math.max(Math.abs(x), Math.abs(x - width));
+              var _b = findCorner(width, height, x, y, false), cx = _b[0], cy = _b[1];
+              rx = distance(cx - x, (cy - y) / c);
               ry = c * rx;
             }
             break;
@@ -5855,7 +6077,7 @@ var require_html2canvas = __commonJS({
           return false;
         });
       };
-      var createForeignObjectSVG = function(width, height, x, y2, node) {
+      var createForeignObjectSVG = function(width, height, x, y, node) {
         var xmlns = "http://www.w3.org/2000/svg";
         var svg = document.createElementNS(xmlns, "svg");
         var foreignObject = document.createElementNS(xmlns, "foreignObject");
@@ -5864,7 +6086,7 @@ var require_html2canvas = __commonJS({
         foreignObject.setAttributeNS(null, "width", "100%");
         foreignObject.setAttributeNS(null, "height", "100%");
         foreignObject.setAttributeNS(null, "x", x.toString());
-        foreignObject.setAttributeNS(null, "y", y2.toString());
+        foreignObject.setAttributeNS(null, "y", y.toString());
         foreignObject.setAttributeNS(null, "externalResourcesRequired", "true");
         svg.appendChild(foreignObject);
         foreignObject.appendChild(node);
@@ -6069,11 +6291,11 @@ var require_html2canvas = __commonJS({
         }
       };
       var CAPITALIZE = /(^|\s|:|-|\(|\))([a-z])/g;
-      var capitalize = function(m2, p1, p2) {
-        if (m2.length > 0) {
+      var capitalize = function(m, p1, p2) {
+        if (m.length > 0) {
           return p1 + p2.toUpperCase();
         }
-        return m2;
+        return m;
       };
       var ImageElementContainer = (
         /** @class */
@@ -7308,15 +7530,15 @@ var require_html2canvas = __commonJS({
         }
         return str;
       };
-      var restoreOwnerScroll = function(ownerDocument, x, y2) {
-        if (ownerDocument && ownerDocument.defaultView && (x !== ownerDocument.defaultView.pageXOffset || y2 !== ownerDocument.defaultView.pageYOffset)) {
-          ownerDocument.defaultView.scrollTo(x, y2);
+      var restoreOwnerScroll = function(ownerDocument, x, y) {
+        if (ownerDocument && ownerDocument.defaultView && (x !== ownerDocument.defaultView.pageXOffset || y !== ownerDocument.defaultView.pageYOffset)) {
+          ownerDocument.defaultView.scrollTo(x, y);
         }
       };
       var restoreNodeScroll = function(_a) {
-        var element = _a[0], x = _a[1], y2 = _a[2];
+        var element = _a[0], x = _a[1], y = _a[2];
         element.scrollLeft = x;
-        element.scrollTop = y2;
+        element.scrollTop = y;
       };
       var PSEUDO_BEFORE = ":before";
       var PSEUDO_AFTER = ":after";
@@ -7508,10 +7730,10 @@ var require_html2canvas = __commonJS({
       var Vector = (
         /** @class */
         function() {
-          function Vector2(x, y2) {
+          function Vector2(x, y) {
             this.type = 0;
             this.x = x;
-            this.y = y2;
+            this.y = y;
           }
           Vector2.prototype.add = function(deltaX, deltaY) {
             return new Vector2(this.x + deltaX, this.y + deltaY);
@@ -7626,22 +7848,22 @@ var require_html2canvas = __commonJS({
         CORNER2[CORNER2["BOTTOM_RIGHT"] = 2] = "BOTTOM_RIGHT";
         CORNER2[CORNER2["BOTTOM_LEFT"] = 3] = "BOTTOM_LEFT";
       })(CORNER || (CORNER = {}));
-      var getCurvePoints = function(x, y2, r1, r2, position2) {
+      var getCurvePoints = function(x, y, r1, r2, position2) {
         var kappa = 4 * ((Math.sqrt(2) - 1) / 3);
         var ox = r1 * kappa;
         var oy = r2 * kappa;
         var xm = x + r1;
-        var ym = y2 + r2;
+        var ym = y + r2;
         switch (position2) {
           case CORNER.TOP_LEFT:
-            return new BezierCurve(new Vector(x, ym), new Vector(x, ym - oy), new Vector(xm - ox, y2), new Vector(xm, y2));
+            return new BezierCurve(new Vector(x, ym), new Vector(x, ym - oy), new Vector(xm - ox, y), new Vector(xm, y));
           case CORNER.TOP_RIGHT:
-            return new BezierCurve(new Vector(x, y2), new Vector(x + ox, y2), new Vector(xm, ym - oy), new Vector(xm, ym));
+            return new BezierCurve(new Vector(x, y), new Vector(x + ox, y), new Vector(xm, ym - oy), new Vector(xm, ym));
           case CORNER.BOTTOM_RIGHT:
-            return new BezierCurve(new Vector(xm, y2), new Vector(xm, y2 + oy), new Vector(x + ox, ym), new Vector(x, ym));
+            return new BezierCurve(new Vector(xm, y), new Vector(xm, y + oy), new Vector(x + ox, ym), new Vector(x, ym));
           case CORNER.BOTTOM_LEFT:
           default:
-            return new BezierCurve(new Vector(xm, ym), new Vector(xm - ox, ym), new Vector(x, y2 + oy), new Vector(x, y2));
+            return new BezierCurve(new Vector(xm, ym), new Vector(xm - ox, ym), new Vector(x, y + oy), new Vector(x, y));
         }
       };
       var calculateBorderBoxPath = function(curves) {
@@ -8146,15 +8368,15 @@ var require_html2canvas = __commonJS({
         return value;
       };
       var calculateBackgroundRepeatPath = function(repeat, _a, _b, backgroundPositioningArea, backgroundPaintingArea) {
-        var x = _a[0], y2 = _a[1];
+        var x = _a[0], y = _a[1];
         var width = _b[0], height = _b[1];
         switch (repeat) {
           case 2:
             return [
-              new Vector(Math.round(backgroundPositioningArea.left), Math.round(backgroundPositioningArea.top + y2)),
-              new Vector(Math.round(backgroundPositioningArea.left + backgroundPositioningArea.width), Math.round(backgroundPositioningArea.top + y2)),
-              new Vector(Math.round(backgroundPositioningArea.left + backgroundPositioningArea.width), Math.round(height + backgroundPositioningArea.top + y2)),
-              new Vector(Math.round(backgroundPositioningArea.left), Math.round(height + backgroundPositioningArea.top + y2))
+              new Vector(Math.round(backgroundPositioningArea.left), Math.round(backgroundPositioningArea.top + y)),
+              new Vector(Math.round(backgroundPositioningArea.left + backgroundPositioningArea.width), Math.round(backgroundPositioningArea.top + y)),
+              new Vector(Math.round(backgroundPositioningArea.left + backgroundPositioningArea.width), Math.round(height + backgroundPositioningArea.top + y)),
+              new Vector(Math.round(backgroundPositioningArea.left), Math.round(height + backgroundPositioningArea.top + y))
             ];
           case 3:
             return [
@@ -8165,10 +8387,10 @@ var require_html2canvas = __commonJS({
             ];
           case 1:
             return [
-              new Vector(Math.round(backgroundPositioningArea.left + x), Math.round(backgroundPositioningArea.top + y2)),
-              new Vector(Math.round(backgroundPositioningArea.left + x + width), Math.round(backgroundPositioningArea.top + y2)),
-              new Vector(Math.round(backgroundPositioningArea.left + x + width), Math.round(backgroundPositioningArea.top + y2 + height)),
-              new Vector(Math.round(backgroundPositioningArea.left + x), Math.round(backgroundPositioningArea.top + y2 + height))
+              new Vector(Math.round(backgroundPositioningArea.left + x), Math.round(backgroundPositioningArea.top + y)),
+              new Vector(Math.round(backgroundPositioningArea.left + x + width), Math.round(backgroundPositioningArea.top + y)),
+              new Vector(Math.round(backgroundPositioningArea.left + x + width), Math.round(backgroundPositioningArea.top + y + height)),
+              new Vector(Math.round(backgroundPositioningArea.left + x), Math.round(backgroundPositioningArea.top + y + height))
             ];
           default:
             return [
@@ -8821,7 +9043,7 @@ var require_html2canvas = __commonJS({
                   case 0:
                     index = container.styles.backgroundImage.length - 1;
                     _loop_1 = function(backgroundImage3) {
-                      var image2, url, _c, path, x, y2, width, height, pattern, _d, path, x, y2, width, height, _e, lineLength, x0, x1, y0, y1, canvas, ctx, gradient_1, pattern, _f, path, left, top_1, width, height, position2, x, y2, _g, rx, ry, radialGradient_1, midX, midY, f2, invF;
+                      var image2, url, _c, path, x, y, width, height, pattern, _d, path, x, y, width, height, _e, lineLength, x0, x1, y0, y1, canvas, ctx, gradient_1, pattern, _f, path, left, top_1, width, height, position2, x, y, _g, rx, ry, radialGradient_1, midX, midY, f2, invF;
                       return __generator(this, function(_h) {
                         switch (_h.label) {
                           case 0:
@@ -8846,14 +9068,14 @@ var require_html2canvas = __commonJS({
                                 image2.width,
                                 image2.height,
                                 image2.width / image2.height
-                              ]), path = _c[0], x = _c[1], y2 = _c[2], width = _c[3], height = _c[4];
+                              ]), path = _c[0], x = _c[1], y = _c[2], width = _c[3], height = _c[4];
                               pattern = this_1.ctx.createPattern(this_1.resizeImage(image2, width, height), "repeat");
-                              this_1.renderRepeat(path, pattern, x, y2);
+                              this_1.renderRepeat(path, pattern, x, y);
                             }
                             return [3, 6];
                           case 5:
                             if (isLinearGradient(backgroundImage3)) {
-                              _d = calculateBackgroundRendering(container, index, [null, null, null]), path = _d[0], x = _d[1], y2 = _d[2], width = _d[3], height = _d[4];
+                              _d = calculateBackgroundRendering(container, index, [null, null, null]), path = _d[0], x = _d[1], y = _d[2], width = _d[3], height = _d[4];
                               _e = calculateGradientDirection(backgroundImage3.angle, width, height), lineLength = _e[0], x0 = _e[1], x1 = _e[2], y0 = _e[3], y1 = _e[4];
                               canvas = document.createElement("canvas");
                               canvas.width = width;
@@ -8867,7 +9089,7 @@ var require_html2canvas = __commonJS({
                               ctx.fillRect(0, 0, width, height);
                               if (width > 0 && height > 0) {
                                 pattern = this_1.ctx.createPattern(canvas, "repeat");
-                                this_1.renderRepeat(path, pattern, x, y2);
+                                this_1.renderRepeat(path, pattern, x, y);
                               }
                             } else if (isRadialGradient(backgroundImage3)) {
                               _f = calculateBackgroundRendering(container, index, [
@@ -8877,10 +9099,10 @@ var require_html2canvas = __commonJS({
                               ]), path = _f[0], left = _f[1], top_1 = _f[2], width = _f[3], height = _f[4];
                               position2 = backgroundImage3.position.length === 0 ? [FIFTY_PERCENT] : backgroundImage3.position;
                               x = getAbsoluteValue(position2[0], width);
-                              y2 = getAbsoluteValue(position2[position2.length - 1], height);
-                              _g = calculateRadius(backgroundImage3, x, y2, width, height), rx = _g[0], ry = _g[1];
+                              y = getAbsoluteValue(position2[position2.length - 1], height);
+                              _g = calculateRadius(backgroundImage3, x, y, width, height), rx = _g[0], ry = _g[1];
                               if (rx > 0 && ry > 0) {
-                                radialGradient_1 = this_1.ctx.createRadialGradient(left + x, top_1 + y2, 0, left + x, top_1 + y2, rx);
+                                radialGradient_1 = this_1.ctx.createRadialGradient(left + x, top_1 + y, 0, left + x, top_1 + y, rx);
                                 processColorStops(backgroundImage3.stops, rx * 2).forEach(function(colorStop) {
                                   return radialGradient_1.addColorStop(colorStop.stop, asString(colorStop.color));
                                 });
@@ -11220,12 +11442,12 @@ var require_internal_state = __commonJS({
       store.get = store.get;
       store.has = store.has;
       store.set = store.set;
-      set = function(it, metadata2) {
+      set = function(it, metadata) {
         if (store.has(it))
           throw new TypeError2(OBJECT_ALREADY_INITIALIZED);
-        metadata2.facade = it;
-        store.set(it, metadata2);
-        return metadata2;
+        metadata.facade = it;
+        store.set(it, metadata);
+        return metadata;
       };
       get = function(it) {
         return store.get(it) || {};
@@ -11236,12 +11458,12 @@ var require_internal_state = __commonJS({
     } else {
       STATE = sharedKey("state");
       hiddenKeys[STATE] = true;
-      set = function(it, metadata2) {
+      set = function(it, metadata) {
         if (hasOwn(it, STATE))
           throw new TypeError2(OBJECT_ALREADY_INITIALIZED);
-        metadata2.facade = it;
-        createNonEnumerableProperty(it, STATE, metadata2);
-        return metadata2;
+        metadata.facade = it;
+        createNonEnumerableProperty(it, STATE, metadata);
+        return metadata;
       };
       get = function(it) {
         return hasOwn(it, STATE) ? it[STATE] : {};
@@ -13196,7 +13418,7 @@ var require_regeneratorRuntime = __commonJS({
         }
       }
       e.wrap = wrap;
-      var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y2 = {};
+      var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {};
       function Generator() {
       }
       function GeneratorFunction() {
@@ -13264,7 +13486,7 @@ var require_regeneratorRuntime = __commonJS({
             if (c2) {
               var u2 = maybeInvokeDelegate(c2, n2);
               if (u2) {
-                if (u2 === y2)
+                if (u2 === y)
                   continue;
                 return u2;
               }
@@ -13280,7 +13502,7 @@ var require_regeneratorRuntime = __commonJS({
             o2 = f;
             var p2 = tryCatch(e2, r2, n2);
             if ("normal" === p2.type) {
-              if (o2 = n2.done ? s : l, p2.arg === y2)
+              if (o2 = n2.done ? s : l, p2.arg === y)
                 continue;
               return {
                 value: p2.arg,
@@ -13294,12 +13516,12 @@ var require_regeneratorRuntime = __commonJS({
       function maybeInvokeDelegate(e2, r2) {
         var n2 = r2.method, o2 = e2.iterator[n2];
         if (o2 === t)
-          return r2.delegate = null, "throw" === n2 && e2.iterator["return"] && (r2.method = "return", r2.arg = t, maybeInvokeDelegate(e2, r2), "throw" === r2.method) || "return" !== n2 && (r2.method = "throw", r2.arg = new TypeError("The iterator does not provide a '" + n2 + "' method")), y2;
+          return r2.delegate = null, "throw" === n2 && e2.iterator["return"] && (r2.method = "return", r2.arg = t, maybeInvokeDelegate(e2, r2), "throw" === r2.method) || "return" !== n2 && (r2.method = "throw", r2.arg = new TypeError("The iterator does not provide a '" + n2 + "' method")), y;
         var i2 = tryCatch(o2, e2.iterator, r2.arg);
         if ("throw" === i2.type)
-          return r2.method = "throw", r2.arg = i2.arg, r2.delegate = null, y2;
+          return r2.method = "throw", r2.arg = i2.arg, r2.delegate = null, y;
         var a2 = i2.arg;
-        return a2 ? a2.done ? (r2[e2.resultName] = a2.value, r2.next = e2.nextLoc, "return" !== r2.method && (r2.method = "next", r2.arg = t), r2.delegate = null, y2) : a2 : (r2.method = "throw", r2.arg = new TypeError("iterator result is not an object"), r2.delegate = null, y2);
+        return a2 ? a2.done ? (r2[e2.resultName] = a2.value, r2.next = e2.nextLoc, "return" !== r2.method && (r2.method = "next", r2.arg = t), r2.delegate = null, y) : a2 : (r2.method = "throw", r2.arg = new TypeError("iterator result is not an object"), r2.delegate = null, y);
       }
       function pushTryEntry(t2) {
         var e2 = {
@@ -13428,18 +13650,18 @@ var require_regeneratorRuntime = __commonJS({
           }
           i2 && ("break" === t2 || "continue" === t2) && i2.tryLoc <= e2 && e2 <= i2.finallyLoc && (i2 = null);
           var a2 = i2 ? i2.completion : {};
-          return a2.type = t2, a2.arg = e2, i2 ? (this.method = "next", this.next = i2.finallyLoc, y2) : this.complete(a2);
+          return a2.type = t2, a2.arg = e2, i2 ? (this.method = "next", this.next = i2.finallyLoc, y) : this.complete(a2);
         },
         complete: function complete(t2, e2) {
           if ("throw" === t2.type)
             throw t2.arg;
-          return "break" === t2.type || "continue" === t2.type ? this.next = t2.arg : "return" === t2.type ? (this.rval = this.arg = t2.arg, this.method = "return", this.next = "end") : "normal" === t2.type && e2 && (this.next = e2), y2;
+          return "break" === t2.type || "continue" === t2.type ? this.next = t2.arg : "return" === t2.type ? (this.rval = this.arg = t2.arg, this.method = "return", this.next = "end") : "normal" === t2.type && e2 && (this.next = e2), y;
         },
         finish: function finish(t2) {
           for (var e2 = this.tryEntries.length - 1; e2 >= 0; --e2) {
             var r2 = this.tryEntries[e2];
             if (r2.finallyLoc === t2)
-              return this.complete(r2.completion, r2.afterLoc), resetTryEntry(r2), y2;
+              return this.complete(r2.completion, r2.afterLoc), resetTryEntry(r2), y;
           }
         },
         "catch": function _catch(t2) {
@@ -13461,7 +13683,7 @@ var require_regeneratorRuntime = __commonJS({
             iterator: values(e2),
             resultName: r2,
             nextLoc: n2
-          }, "next" === this.method && (this.arg = t), y2;
+          }, "next" === this.method && (this.arg = t), y;
         }
       }, e;
     }
@@ -14291,7 +14513,7 @@ var require_get_substitution = __commonJS({
     var SUBSTITUTION_SYMBOLS_NO_NAMED = /\$([$&'`]|\d{1,2})/g;
     module2.exports = function(matched, str, position, captures, namedCaptures, replacement) {
       var tailPos = position + matched.length;
-      var m2 = captures.length;
+      var m = captures.length;
       var symbols = SUBSTITUTION_SYMBOLS_NO_NAMED;
       if (namedCaptures !== void 0) {
         namedCaptures = toObject(namedCaptures);
@@ -14315,11 +14537,11 @@ var require_get_substitution = __commonJS({
             var n = +ch;
             if (n === 0)
               return match;
-            if (n > m2) {
+            if (n > m) {
               var f = floor(n / 10);
               if (f === 0)
                 return match;
-              if (f <= m2)
+              if (f <= m)
                 return captures[f - 1] === void 0 ? charAt(ch, 1) : captures[f - 1] + charAt(ch, 1);
               return match;
             }
@@ -16568,10 +16790,10 @@ var require_SVGPathData = __commonJS({
         t2.lArcFlag = 0 === t2.lArcFlag ? 0 : 1, t2.sweepFlag = 0 === t2.sweepFlag ? 0 : 1;
         var a2 = t2.rX, i2 = t2.rY, o2 = t2.x, u2 = t2.y;
         a2 = Math.abs(t2.rX), i2 = Math.abs(t2.rY);
-        var h2 = n([(r2 - o2) / 2, (e2 - u2) / 2], -t2.xRot / 180 * s), c2 = h2[0], m3 = h2[1], y3 = Math.pow(c2, 2) / Math.pow(a2, 2) + Math.pow(m3, 2) / Math.pow(i2, 2);
-        1 < y3 && (a2 *= Math.sqrt(y3), i2 *= Math.sqrt(y3)), t2.rX = a2, t2.rY = i2;
-        var p2 = Math.pow(a2, 2) * Math.pow(m3, 2) + Math.pow(i2, 2) * Math.pow(c2, 2), f2 = (t2.lArcFlag !== t2.sweepFlag ? 1 : -1) * Math.sqrt(Math.max(0, (Math.pow(a2, 2) * Math.pow(i2, 2) - p2) / p2)), T2 = a2 * m3 / i2 * f2, O2 = -i2 * c2 / a2 * f2, l2 = n([T2, O2], t2.xRot / 180 * s);
-        t2.cX = l2[0] + (r2 + o2) / 2, t2.cY = l2[1] + (e2 + u2) / 2, t2.phi1 = Math.atan2((m3 - O2) / i2, (c2 - T2) / a2), t2.phi2 = Math.atan2((-m3 - O2) / i2, (-c2 - T2) / a2), 0 === t2.sweepFlag && t2.phi2 > t2.phi1 && (t2.phi2 -= 2 * s), 1 === t2.sweepFlag && t2.phi2 < t2.phi1 && (t2.phi2 += 2 * s), t2.phi1 *= 180 / s, t2.phi2 *= 180 / s;
+        var h2 = n([(r2 - o2) / 2, (e2 - u2) / 2], -t2.xRot / 180 * s), c2 = h2[0], m2 = h2[1], y2 = Math.pow(c2, 2) / Math.pow(a2, 2) + Math.pow(m2, 2) / Math.pow(i2, 2);
+        1 < y2 && (a2 *= Math.sqrt(y2), i2 *= Math.sqrt(y2)), t2.rX = a2, t2.rY = i2;
+        var p2 = Math.pow(a2, 2) * Math.pow(m2, 2) + Math.pow(i2, 2) * Math.pow(c2, 2), f2 = (t2.lArcFlag !== t2.sweepFlag ? 1 : -1) * Math.sqrt(Math.max(0, (Math.pow(a2, 2) * Math.pow(i2, 2) - p2) / p2)), T2 = a2 * m2 / i2 * f2, O2 = -i2 * c2 / a2 * f2, l2 = n([T2, O2], t2.xRot / 180 * s);
+        t2.cX = l2[0] + (r2 + o2) / 2, t2.cY = l2[1] + (e2 + u2) / 2, t2.phi1 = Math.atan2((m2 - O2) / i2, (c2 - T2) / a2), t2.phi2 = Math.atan2((-m2 - O2) / i2, (-c2 - T2) / a2), 0 === t2.sweepFlag && t2.phi2 > t2.phi1 && (t2.phi2 -= 2 * s), 1 === t2.sweepFlag && t2.phi2 < t2.phi1 && (t2.phi2 += 2 * s), t2.phi1 *= 180 / s, t2.phi2 *= 180 / s;
       }
       function h(t2, r2, e2) {
         o(t2, r2, e2);
@@ -16584,10 +16806,10 @@ var require_SVGPathData = __commonJS({
         return [[(t2 * e2 + r2 * i2) / (t2 * t2 + r2 * r2), (r2 * e2 - t2 * i2) / (t2 * t2 + r2 * r2)], [(t2 * e2 - r2 * i2) / (t2 * t2 + r2 * r2), (r2 * e2 + t2 * i2) / (t2 * t2 + r2 * r2)]];
       }
       var c = Math.PI / 180;
-      function m2(t2, r2, e2) {
+      function m(t2, r2, e2) {
         return (1 - e2) * t2 + e2 * r2;
       }
-      function y2(t2, r2, e2, a2) {
+      function y(t2, r2, e2, a2) {
         return t2 + Math.cos(a2 / 180 * s) * r2 + Math.sin(a2 / 180 * s) * e2;
       }
       function p(t2, r2, e2, a2) {
@@ -16642,11 +16864,11 @@ var require_SVGPathData = __commonJS({
         }
         function s2(t3, r3, e3, a3, n2, s3) {
           return o(t3, r3, e3, a3, n2, s3), i2(function(i3, o2, u2, h2) {
-            var c2 = i3.x1, m3 = i3.x2, y3 = i3.relative && !isNaN(h2), p2 = void 0 !== i3.x ? i3.x : y3 ? 0 : o2, f2 = void 0 !== i3.y ? i3.y : y3 ? 0 : u2;
+            var c2 = i3.x1, m2 = i3.x2, y2 = i3.relative && !isNaN(h2), p2 = void 0 !== i3.x ? i3.x : y2 ? 0 : o2, f2 = void 0 !== i3.y ? i3.y : y2 ? 0 : u2;
             function T3(t4) {
               return t4 * t4;
             }
-            i3.type & N.HORIZ_LINE_TO && 0 !== r3 && (i3.type = N.LINE_TO, i3.y = i3.relative ? 0 : u2), i3.type & N.VERT_LINE_TO && 0 !== e3 && (i3.type = N.LINE_TO, i3.x = i3.relative ? 0 : o2), void 0 !== i3.x && (i3.x = i3.x * t3 + f2 * e3 + (y3 ? 0 : n2)), void 0 !== i3.y && (i3.y = p2 * r3 + i3.y * a3 + (y3 ? 0 : s3)), void 0 !== i3.x1 && (i3.x1 = i3.x1 * t3 + i3.y1 * e3 + (y3 ? 0 : n2)), void 0 !== i3.y1 && (i3.y1 = c2 * r3 + i3.y1 * a3 + (y3 ? 0 : s3)), void 0 !== i3.x2 && (i3.x2 = i3.x2 * t3 + i3.y2 * e3 + (y3 ? 0 : n2)), void 0 !== i3.y2 && (i3.y2 = m3 * r3 + i3.y2 * a3 + (y3 ? 0 : s3));
+            i3.type & N.HORIZ_LINE_TO && 0 !== r3 && (i3.type = N.LINE_TO, i3.y = i3.relative ? 0 : u2), i3.type & N.VERT_LINE_TO && 0 !== e3 && (i3.type = N.LINE_TO, i3.x = i3.relative ? 0 : o2), void 0 !== i3.x && (i3.x = i3.x * t3 + f2 * e3 + (y2 ? 0 : n2)), void 0 !== i3.y && (i3.y = p2 * r3 + i3.y * a3 + (y2 ? 0 : s3)), void 0 !== i3.x1 && (i3.x1 = i3.x1 * t3 + i3.y1 * e3 + (y2 ? 0 : n2)), void 0 !== i3.y1 && (i3.y1 = c2 * r3 + i3.y1 * a3 + (y2 ? 0 : s3)), void 0 !== i3.x2 && (i3.x2 = i3.x2 * t3 + i3.y2 * e3 + (y2 ? 0 : n2)), void 0 !== i3.y2 && (i3.y2 = m2 * r3 + i3.y2 * a3 + (y2 ? 0 : s3));
             var O2 = t3 * a3 - r3 * e3;
             if (void 0 !== i3.xRot && (1 !== t3 || 0 !== r3 || 0 !== e3 || 1 !== a3))
               if (0 === O2)
@@ -16687,14 +16909,14 @@ var require_SVGPathData = __commonJS({
           void 0 === t3 && (t3 = 0), o(t3);
           var r3 = NaN, e3 = NaN, a3 = NaN, n2 = NaN;
           return i2(function(i3, o2, s3, u2, h2) {
-            var c2 = Math.abs, m3 = false, y3 = 0, p2 = 0;
-            if (i3.type & N.SMOOTH_CURVE_TO && (y3 = isNaN(r3) ? 0 : o2 - r3, p2 = isNaN(e3) ? 0 : s3 - e3), i3.type & (N.CURVE_TO | N.SMOOTH_CURVE_TO) ? (r3 = i3.relative ? o2 + i3.x2 : i3.x2, e3 = i3.relative ? s3 + i3.y2 : i3.y2) : (r3 = NaN, e3 = NaN), i3.type & N.SMOOTH_QUAD_TO ? (a3 = isNaN(a3) ? o2 : 2 * o2 - a3, n2 = isNaN(n2) ? s3 : 2 * s3 - n2) : i3.type & N.QUAD_TO ? (a3 = i3.relative ? o2 + i3.x1 : i3.x1, n2 = i3.relative ? s3 + i3.y1 : i3.y2) : (a3 = NaN, n2 = NaN), i3.type & N.LINE_COMMANDS || i3.type & N.ARC && (0 === i3.rX || 0 === i3.rY || !i3.lArcFlag) || i3.type & N.CURVE_TO || i3.type & N.SMOOTH_CURVE_TO || i3.type & N.QUAD_TO || i3.type & N.SMOOTH_QUAD_TO) {
+            var c2 = Math.abs, m2 = false, y2 = 0, p2 = 0;
+            if (i3.type & N.SMOOTH_CURVE_TO && (y2 = isNaN(r3) ? 0 : o2 - r3, p2 = isNaN(e3) ? 0 : s3 - e3), i3.type & (N.CURVE_TO | N.SMOOTH_CURVE_TO) ? (r3 = i3.relative ? o2 + i3.x2 : i3.x2, e3 = i3.relative ? s3 + i3.y2 : i3.y2) : (r3 = NaN, e3 = NaN), i3.type & N.SMOOTH_QUAD_TO ? (a3 = isNaN(a3) ? o2 : 2 * o2 - a3, n2 = isNaN(n2) ? s3 : 2 * s3 - n2) : i3.type & N.QUAD_TO ? (a3 = i3.relative ? o2 + i3.x1 : i3.x1, n2 = i3.relative ? s3 + i3.y1 : i3.y2) : (a3 = NaN, n2 = NaN), i3.type & N.LINE_COMMANDS || i3.type & N.ARC && (0 === i3.rX || 0 === i3.rY || !i3.lArcFlag) || i3.type & N.CURVE_TO || i3.type & N.SMOOTH_CURVE_TO || i3.type & N.QUAD_TO || i3.type & N.SMOOTH_QUAD_TO) {
               var f2 = void 0 === i3.x ? 0 : i3.relative ? i3.x : i3.x - o2, T3 = void 0 === i3.y ? 0 : i3.relative ? i3.y : i3.y - s3;
-              y3 = isNaN(a3) ? void 0 === i3.x1 ? y3 : i3.relative ? i3.x : i3.x1 - o2 : a3 - o2, p2 = isNaN(n2) ? void 0 === i3.y1 ? p2 : i3.relative ? i3.y : i3.y1 - s3 : n2 - s3;
+              y2 = isNaN(a3) ? void 0 === i3.x1 ? y2 : i3.relative ? i3.x : i3.x1 - o2 : a3 - o2, p2 = isNaN(n2) ? void 0 === i3.y1 ? p2 : i3.relative ? i3.y : i3.y1 - s3 : n2 - s3;
               var O2 = void 0 === i3.x2 ? 0 : i3.relative ? i3.x : i3.x2 - o2, l2 = void 0 === i3.y2 ? 0 : i3.relative ? i3.y : i3.y2 - s3;
-              c2(f2) <= t3 && c2(T3) <= t3 && c2(y3) <= t3 && c2(p2) <= t3 && c2(O2) <= t3 && c2(l2) <= t3 && (m3 = true);
+              c2(f2) <= t3 && c2(T3) <= t3 && c2(y2) <= t3 && c2(p2) <= t3 && c2(O2) <= t3 && c2(l2) <= t3 && (m2 = true);
             }
-            return i3.type & N.CLOSE_PATH && c2(o2 - u2) <= t3 && c2(s3 - h2) <= t3 && (m3 = true), m3 ? [] : i3;
+            return i3.type & N.CLOSE_PATH && c2(o2 - u2) <= t3 && c2(s3 - h2) <= t3 && (m2 = true), m2 ? [] : i3;
           });
         }, t2.MATRIX = s2, t2.ROTATE = function(t3, r3, e3) {
           void 0 === r3 && (r3 = 0), void 0 === e3 && (e3 = 0), o(t3, r3, e3);
@@ -16717,8 +16939,8 @@ var require_SVGPathData = __commonJS({
             return N.ARC === t3.type ? function(t4, r4, e4) {
               var a3, i3, o2, s3;
               t4.cX || u(t4, r4, e4);
-              for (var h2 = Math.min(t4.phi1, t4.phi2), y3 = Math.max(t4.phi1, t4.phi2) - h2, p2 = Math.ceil(y3 / 90), f2 = new Array(p2), T3 = r4, O2 = e4, l2 = 0; l2 < p2; l2++) {
-                var v2 = m2(t4.phi1, t4.phi2, l2 / p2), _2 = m2(t4.phi1, t4.phi2, (l2 + 1) / p2), d2 = _2 - v2, x = 4 / 3 * Math.tan(d2 * c / 4), A = [Math.cos(v2 * c) - x * Math.sin(v2 * c), Math.sin(v2 * c) + x * Math.cos(v2 * c)], E = A[0], C = A[1], M = [Math.cos(_2 * c), Math.sin(_2 * c)], R = M[0], S = M[1], g = [R + x * Math.sin(_2 * c), S - x * Math.cos(_2 * c)], I = g[0], V = g[1];
+              for (var h2 = Math.min(t4.phi1, t4.phi2), y2 = Math.max(t4.phi1, t4.phi2) - h2, p2 = Math.ceil(y2 / 90), f2 = new Array(p2), T3 = r4, O2 = e4, l2 = 0; l2 < p2; l2++) {
+                var v2 = m(t4.phi1, t4.phi2, l2 / p2), _2 = m(t4.phi1, t4.phi2, (l2 + 1) / p2), d2 = _2 - v2, x = 4 / 3 * Math.tan(d2 * c / 4), A = [Math.cos(v2 * c) - x * Math.sin(v2 * c), Math.sin(v2 * c) + x * Math.cos(v2 * c)], E = A[0], C = A[1], M = [Math.cos(_2 * c), Math.sin(_2 * c)], R = M[0], S = M[1], g = [R + x * Math.sin(_2 * c), S - x * Math.cos(_2 * c)], I = g[0], V = g[1];
                 f2[l2] = { relative: t4.relative, type: N.CURVE_TO };
                 var D = function(r5, e5) {
                   var a4 = n([r5 * t4.rX, e5 * t4.rY], t4.xRot), i4 = a4[0], o3 = a4[1];
@@ -16741,32 +16963,32 @@ var require_SVGPathData = __commonJS({
             return r3;
           }, n2 = r2(), o2 = a2(), s3 = e2(), c2 = i2(function(r3, e3, a3) {
             var i3 = s3(o2(n2(t3(r3))));
-            function m3(t4) {
+            function m2(t4) {
               t4 > c2.maxX && (c2.maxX = t4), t4 < c2.minX && (c2.minX = t4);
             }
             function T3(t4) {
               t4 > c2.maxY && (c2.maxY = t4), t4 < c2.minY && (c2.minY = t4);
             }
-            if (i3.type & N.DRAWING_COMMANDS && (m3(e3), T3(a3)), i3.type & N.HORIZ_LINE_TO && m3(i3.x), i3.type & N.VERT_LINE_TO && T3(i3.y), i3.type & N.LINE_TO && (m3(i3.x), T3(i3.y)), i3.type & N.CURVE_TO) {
-              m3(i3.x), T3(i3.y);
+            if (i3.type & N.DRAWING_COMMANDS && (m2(e3), T3(a3)), i3.type & N.HORIZ_LINE_TO && m2(i3.x), i3.type & N.VERT_LINE_TO && T3(i3.y), i3.type & N.LINE_TO && (m2(i3.x), T3(i3.y)), i3.type & N.CURVE_TO) {
+              m2(i3.x), T3(i3.y);
               for (var O2 = 0, l2 = p(e3, i3.x1, i3.x2, i3.x); O2 < l2.length; O2++) {
-                0 < (H = l2[O2]) && 1 > H && m3(f(e3, i3.x1, i3.x2, i3.x, H));
+                0 < (H = l2[O2]) && 1 > H && m2(f(e3, i3.x1, i3.x2, i3.x, H));
               }
               for (var v2 = 0, _2 = p(a3, i3.y1, i3.y2, i3.y); v2 < _2.length; v2++) {
                 0 < (H = _2[v2]) && 1 > H && T3(f(a3, i3.y1, i3.y2, i3.y, H));
               }
             }
             if (i3.type & N.ARC) {
-              m3(i3.x), T3(i3.y), u(i3, e3, a3);
+              m2(i3.x), T3(i3.y), u(i3, e3, a3);
               for (var d2 = i3.xRot / 180 * Math.PI, x = Math.cos(d2) * i3.rX, A = Math.sin(d2) * i3.rX, E = -Math.sin(d2) * i3.rY, C = Math.cos(d2) * i3.rY, M = i3.phi1 < i3.phi2 ? [i3.phi1, i3.phi2] : -180 > i3.phi2 ? [i3.phi2 + 360, i3.phi1 + 360] : [i3.phi2, i3.phi1], R = M[0], S = M[1], g = function(t4) {
                 var r4 = t4[0], e4 = t4[1], a4 = 180 * Math.atan2(e4, r4) / Math.PI;
                 return a4 < R ? a4 + 360 : a4;
               }, I = 0, V = h(E, -x, 0).map(g); I < V.length; I++) {
-                (H = V[I]) > R && H < S && m3(y2(i3.cX, x, E, H));
+                (H = V[I]) > R && H < S && m2(y(i3.cX, x, E, H));
               }
               for (var D = 0, L = h(C, -A, 0).map(g); D < L.length; D++) {
                 var H;
-                (H = L[D]) > R && H < S && T3(y2(i3.cY, A, C, H));
+                (H = L[D]) > R && H < S && T3(y(i3.cY, A, C, H));
               }
             }
             return r3;
@@ -17717,7 +17939,7 @@ var require_stackblur = __commonJS({
         var stackIn = null, stackOut = null, yw = 0, yi = 0;
         var mulSum = mulTable[radius];
         var shgSum = shgTable[radius];
-        for (var y2 = 0; y2 < height; y2++) {
+        for (var y = 0; y < height; y++) {
           stack = stackStart;
           var pr = pixels[yi], pg = pixels[yi + 1], pb = pixels[yi + 2], pa = pixels[yi + 3];
           for (var _i = 0; _i < radiusPlus1; _i++) {
@@ -17891,7 +18113,7 @@ var require_stackblur = __commonJS({
         var shgSum = shgTable[radius];
         var p, rbs;
         var yw = 0, yi = 0;
-        for (var y2 = 0; y2 < height; y2++) {
+        for (var y = 0; y < height; y++) {
           var pr = pixels[yi], pg = pixels[yi + 1], pb = pixels[yi + 2], rOutSum = radiusPlus1 * pr, gOutSum = radiusPlus1 * pg, bOutSum = radiusPlus1 * pb, rSum = sumFactor * pr, gSum = sumFactor * pg, bSum = sumFactor * pb;
           stack = stackStart;
           for (var _i5 = 0; _i5 < radiusPlus1; _i5++) {
@@ -18619,10 +18841,10 @@ var require_lib2 = __commonJS({
       return ViewPort2;
     }();
     var Point = /* @__PURE__ */ function() {
-      function Point2(x, y2) {
+      function Point2(x, y) {
         _classCallCheck__default["default"](this, Point2);
         this.x = x;
-        this.y = y2;
+        this.y = y;
       }
       _createClass__default["default"](Point2, [{
         key: "angleTo",
@@ -18632,9 +18854,9 @@ var require_lib2 = __commonJS({
       }, {
         key: "applyTransform",
         value: function applyTransform(transform) {
-          var x = this.x, y2 = this.y;
-          var xp = x * transform[0] + y2 * transform[2] + transform[4];
-          var yp = x * transform[1] + y2 * transform[3] + transform[5];
+          var x = this.x, y = this.y;
+          var xp = x * transform[0] + y * transform[2] + transform[4];
+          var yp = x * transform[1] + y * transform[3] + transform[5];
           this.x = xp;
           this.y = yp;
         }
@@ -18642,15 +18864,15 @@ var require_lib2 = __commonJS({
         key: "parse",
         value: function parse(point) {
           var defaultValue = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 0;
-          var _toNumbers = toNumbers(point), _toNumbers2 = _slicedToArray__default["default"](_toNumbers, 2), _toNumbers2$ = _toNumbers2[0], x = _toNumbers2$ === void 0 ? defaultValue : _toNumbers2$, _toNumbers2$2 = _toNumbers2[1], y2 = _toNumbers2$2 === void 0 ? defaultValue : _toNumbers2$2;
-          return new Point2(x, y2);
+          var _toNumbers = toNumbers(point), _toNumbers2 = _slicedToArray__default["default"](_toNumbers, 2), _toNumbers2$ = _toNumbers2[0], x = _toNumbers2$ === void 0 ? defaultValue : _toNumbers2$, _toNumbers2$2 = _toNumbers2[1], y = _toNumbers2$2 === void 0 ? defaultValue : _toNumbers2$2;
+          return new Point2(x, y);
         }
       }, {
         key: "parseScale",
         value: function parseScale(scale2) {
           var defaultValue = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 1;
-          var _toNumbers3 = toNumbers(scale2), _toNumbers4 = _slicedToArray__default["default"](_toNumbers3, 2), _toNumbers4$ = _toNumbers4[0], x = _toNumbers4$ === void 0 ? defaultValue : _toNumbers4$, _toNumbers4$2 = _toNumbers4[1], y2 = _toNumbers4$2 === void 0 ? x : _toNumbers4$2;
-          return new Point2(x, y2);
+          var _toNumbers3 = toNumbers(scale2), _toNumbers4 = _slicedToArray__default["default"](_toNumbers3, 2), _toNumbers4$ = _toNumbers4[0], x = _toNumbers4$ === void 0 ? defaultValue : _toNumbers4$, _toNumbers4$2 = _toNumbers4[1], y = _toNumbers4$2 === void 0 ? x : _toNumbers4$2;
+          return new Point2(x, y);
         }
       }, {
         key: "parsePath",
@@ -18739,8 +18961,8 @@ var require_lib2 = __commonJS({
           }
           var events = this.events, eventElements = this.eventElements;
           events.forEach(function(_ref2, i) {
-            var x = _ref2.x, y2 = _ref2.y;
-            if (!eventElements[i] && ctx.isPointInPath && ctx.isPointInPath(x, y2)) {
+            var x = _ref2.x, y = _ref2.y;
+            if (!eventElements[i] && ctx.isPointInPath && ctx.isPointInPath(x, y)) {
               eventElements[i] = element;
             }
           });
@@ -18753,17 +18975,17 @@ var require_lib2 = __commonJS({
           }
           var events = this.events, eventElements = this.eventElements;
           events.forEach(function(_ref3, i) {
-            var x = _ref3.x, y2 = _ref3.y;
-            if (!eventElements[i] && boundingBox.isPointInBox(x, y2)) {
+            var x = _ref3.x, y = _ref3.y;
+            if (!eventElements[i] && boundingBox.isPointInBox(x, y)) {
               eventElements[i] = element;
             }
           });
         }
       }, {
         key: "mapXY",
-        value: function mapXY(x, y2) {
+        value: function mapXY(x, y) {
           var _this$screen = this.screen, window2 = _this$screen.window, ctx = _this$screen.ctx;
-          var point = new Point(x, y2);
+          var point = new Point(x, y);
           var element = ctx.canvas;
           while (element) {
             point.x -= element.offsetLeft;
@@ -18781,11 +19003,11 @@ var require_lib2 = __commonJS({
       }, {
         key: "onClick",
         value: function onClick(event) {
-          var _this$mapXY = this.mapXY(event.clientX, event.clientY), x = _this$mapXY.x, y2 = _this$mapXY.y;
+          var _this$mapXY = this.mapXY(event.clientX, event.clientY), x = _this$mapXY.x, y = _this$mapXY.y;
           this.events.push({
             type: "onclick",
             x,
-            y: y2,
+            y,
             run: function run(eventTarget) {
               if (eventTarget.onClick) {
                 eventTarget.onClick();
@@ -18796,11 +19018,11 @@ var require_lib2 = __commonJS({
       }, {
         key: "onMouseMove",
         value: function onMouseMove(event) {
-          var _this$mapXY2 = this.mapXY(event.clientX, event.clientY), x = _this$mapXY2.x, y2 = _this$mapXY2.y;
+          var _this$mapXY2 = this.mapXY(event.clientX, event.clientY), x = _this$mapXY2.x, y = _this$mapXY2.y;
           this.events.push({
             type: "onmousemove",
             x,
-            y: y2,
+            y,
             run: function run(eventTarget) {
               if (eventTarget.onMouseMove) {
                 eventTarget.onMouseMove();
@@ -19013,7 +19235,7 @@ var require_lib2 = __commonJS({
         }
       }, {
         key: "render",
-        value: function render(element, ignoreDimensions, ignoreClear, scaleWidth, scaleHeight, offsetX, offsetY) {
+        value: function render2(element, ignoreDimensions, ignoreClear, scaleWidth, scaleHeight, offsetX, offsetY) {
           var CLIENT_WIDTH = this.CLIENT_WIDTH, CLIENT_HEIGHT = this.CLIENT_HEIGHT, viewPort = this.viewPort, ctx = this.ctx, isFirstRender = this.isFirstRender;
           var canvas = ctx.canvas;
           viewPort.clear();
@@ -19193,20 +19415,20 @@ var require_lib2 = __commonJS({
       _createClass__default["default"](Translate2, [{
         key: "apply",
         value: function apply(ctx) {
-          var _this$point = this.point, x = _this$point.x, y2 = _this$point.y;
-          ctx.translate(x || 0, y2 || 0);
+          var _this$point = this.point, x = _this$point.x, y = _this$point.y;
+          ctx.translate(x || 0, y || 0);
         }
       }, {
         key: "unapply",
         value: function unapply(ctx) {
-          var _this$point2 = this.point, x = _this$point2.x, y2 = _this$point2.y;
-          ctx.translate(-1 * x || 0, -1 * y2 || 0);
+          var _this$point2 = this.point, x = _this$point2.x, y = _this$point2.y;
+          ctx.translate(-1 * x || 0, -1 * y || 0);
         }
       }, {
         key: "applyToPoint",
         value: function applyToPoint(point) {
-          var _this$point3 = this.point, x = _this$point3.x, y2 = _this$point3.y;
-          point.applyTransform([1, 0, 0, 1, x || 0, y2 || 0]);
+          var _this$point3 = this.point, x = _this$point3.x, y = _this$point3.y;
+          point.applyTransform([1, 0, 0, 1, x || 0, y || 0]);
         }
       }]);
       return Translate2;
@@ -19294,28 +19516,28 @@ var require_lib2 = __commonJS({
       _createClass__default["default"](Scale2, [{
         key: "apply",
         value: function apply(ctx) {
-          var _this$scale = this.scale, x = _this$scale.x, y2 = _this$scale.y, originX = this.originX, originY = this.originY;
+          var _this$scale = this.scale, x = _this$scale.x, y = _this$scale.y, originX = this.originX, originY = this.originY;
           var tx = originX.getPixels("x");
           var ty = originY.getPixels("y");
           ctx.translate(tx, ty);
-          ctx.scale(x, y2 || x);
+          ctx.scale(x, y || x);
           ctx.translate(-tx, -ty);
         }
       }, {
         key: "unapply",
         value: function unapply(ctx) {
-          var _this$scale2 = this.scale, x = _this$scale2.x, y2 = _this$scale2.y, originX = this.originX, originY = this.originY;
+          var _this$scale2 = this.scale, x = _this$scale2.x, y = _this$scale2.y, originX = this.originX, originY = this.originY;
           var tx = originX.getPixels("x");
           var ty = originY.getPixels("y");
           ctx.translate(tx, ty);
-          ctx.scale(1 / x, 1 / y2 || x);
+          ctx.scale(1 / x, 1 / y || x);
           ctx.translate(-tx, -ty);
         }
       }, {
         key: "applyToPoint",
         value: function applyToPoint(point) {
-          var _this$scale3 = this.scale, x = _this$scale3.x, y2 = _this$scale3.y;
-          point.applyTransform([x || 0, 0, 0, y2 || 0, 0, 0]);
+          var _this$scale3 = this.scale, x = _this$scale3.x, y = _this$scale3.y;
+          point.applyTransform([x || 0, 0, 0, y || 0, 0, 0]);
         }
       }]);
       return Scale2;
@@ -19677,7 +19899,7 @@ var require_lib2 = __commonJS({
         }
       }, {
         key: "render",
-        value: function render(ctx) {
+        value: function render2(ctx) {
           if (this.getStyle("display").getString() === "none" || this.getStyle("visibility").getString() === "hidden") {
             return;
           }
@@ -20001,7 +20223,7 @@ var require_lib2 = __commonJS({
       }
       _createClass__default["default"](BoundingBox2, [{
         key: "addPoint",
-        value: function addPoint(x, y2) {
+        value: function addPoint(x, y) {
           if (typeof x !== "undefined") {
             if (isNaN(this.x1) || isNaN(this.x2)) {
               this.x1 = x;
@@ -20014,16 +20236,16 @@ var require_lib2 = __commonJS({
               this.x2 = x;
             }
           }
-          if (typeof y2 !== "undefined") {
+          if (typeof y !== "undefined") {
             if (isNaN(this.y1) || isNaN(this.y2)) {
-              this.y1 = y2;
-              this.y2 = y2;
+              this.y1 = y;
+              this.y2 = y;
             }
-            if (y2 < this.y1) {
-              this.y1 = y2;
+            if (y < this.y1) {
+              this.y1 = y;
             }
-            if (y2 > this.y2) {
-              this.y2 = y2;
+            if (y > this.y2) {
+              this.y2 = y;
             }
           }
         }
@@ -20034,8 +20256,8 @@ var require_lib2 = __commonJS({
         }
       }, {
         key: "addY",
-        value: function addY(y2) {
-          this.addPoint(null, y2);
+        value: function addY(y) {
+          this.addPoint(null, y);
         }
       }, {
         key: "addBoundingBox",
@@ -20113,9 +20335,9 @@ var require_lib2 = __commonJS({
         }
       }, {
         key: "isPointInBox",
-        value: function isPointInBox(x, y2) {
-          var x1 = this.x1, y1 = this.y1, x2 = this.x2, y22 = this.y2;
-          return x1 <= x && x <= x2 && y1 <= y2 && y2 <= y22;
+        value: function isPointInBox(x, y) {
+          var x1 = this.x1, y1 = this.y1, x2 = this.x2, y2 = this.y2;
+          return x1 <= x && x <= x2 && y1 <= y && y <= y2;
         }
       }, {
         key: "x",
@@ -20249,9 +20471,9 @@ var require_lib2 = __commonJS({
         key: "makeAbsolute",
         value: function makeAbsolute(point) {
           if (this.command.relative) {
-            var _this$current2 = this.current, x = _this$current2.x, y2 = _this$current2.y;
+            var _this$current2 = this.current, x = _this$current2.x, y = _this$current2.y;
             point.x += x;
-            point.y += y2;
+            point.y += y;
           }
           return point;
         }
@@ -20620,11 +20842,11 @@ var require_lib2 = __commonJS({
         value: function pathM(ctx, boundingBox) {
           var pathParser = this.pathParser;
           var _PathElement$pathM = PathElement2.pathM(pathParser), point = _PathElement$pathM.point;
-          var x = point.x, y2 = point.y;
+          var x = point.x, y = point.y;
           pathParser.addMarker(point);
-          boundingBox.addPoint(x, y2);
+          boundingBox.addPoint(x, y);
           if (ctx) {
-            ctx.moveTo(x, y2);
+            ctx.moveTo(x, y);
           }
         }
       }, {
@@ -20632,11 +20854,11 @@ var require_lib2 = __commonJS({
         value: function pathL(ctx, boundingBox) {
           var pathParser = this.pathParser;
           var _PathElement$pathL = PathElement2.pathL(pathParser), current = _PathElement$pathL.current, point = _PathElement$pathL.point;
-          var x = point.x, y2 = point.y;
+          var x = point.x, y = point.y;
           pathParser.addMarker(point, current);
-          boundingBox.addPoint(x, y2);
+          boundingBox.addPoint(x, y);
           if (ctx) {
-            ctx.lineTo(x, y2);
+            ctx.lineTo(x, y);
           }
         }
       }, {
@@ -20644,11 +20866,11 @@ var require_lib2 = __commonJS({
         value: function pathH(ctx, boundingBox) {
           var pathParser = this.pathParser;
           var _PathElement$pathH = PathElement2.pathH(pathParser), current = _PathElement$pathH.current, point = _PathElement$pathH.point;
-          var x = point.x, y2 = point.y;
+          var x = point.x, y = point.y;
           pathParser.addMarker(point, current);
-          boundingBox.addPoint(x, y2);
+          boundingBox.addPoint(x, y);
           if (ctx) {
-            ctx.lineTo(x, y2);
+            ctx.lineTo(x, y);
           }
         }
       }, {
@@ -20656,11 +20878,11 @@ var require_lib2 = __commonJS({
         value: function pathV(ctx, boundingBox) {
           var pathParser = this.pathParser;
           var _PathElement$pathV = PathElement2.pathV(pathParser), current = _PathElement$pathV.current, point = _PathElement$pathV.point;
-          var x = point.x, y2 = point.y;
+          var x = point.x, y = point.y;
           pathParser.addMarker(point, current);
-          boundingBox.addPoint(x, y2);
+          boundingBox.addPoint(x, y);
           if (ctx) {
-            ctx.lineTo(x, y2);
+            ctx.lineTo(x, y);
           }
         }
       }, {
@@ -21133,12 +21355,12 @@ var require_lib2 = __commonJS({
             }
             return;
           }
-          var x = this.x, y2 = this.y;
+          var x = this.x, y = this.y;
           if (ctx.fillStyle) {
-            ctx.fillText(renderText, x, y2);
+            ctx.fillText(renderText, x, y);
           }
           if (ctx.strokeStyle) {
-            ctx.strokeText(renderText, x, y2);
+            ctx.strokeText(renderText, x, y);
           }
         }
       }, {
@@ -21652,7 +21874,7 @@ var require_lib2 = __commonJS({
         key: "path",
         value: function path(ctx) {
           var x = this.getAttribute("x").getPixels("x");
-          var y2 = this.getAttribute("y").getPixels("y");
+          var y = this.getAttribute("y").getPixels("y");
           var width = this.getStyle("width", false, true).getPixels("x");
           var height = this.getStyle("height", false, true).getPixels("y");
           var rxAttr = this.getAttribute("rx");
@@ -21671,19 +21893,19 @@ var require_lib2 = __commonJS({
             var KAPPA = 4 * ((Math.sqrt(2) - 1) / 3);
             ctx.beginPath();
             if (height > 0 && width > 0) {
-              ctx.moveTo(x + rx, y2);
-              ctx.lineTo(x + width - rx, y2);
-              ctx.bezierCurveTo(x + width - rx + KAPPA * rx, y2, x + width, y2 + ry - KAPPA * ry, x + width, y2 + ry);
-              ctx.lineTo(x + width, y2 + height - ry);
-              ctx.bezierCurveTo(x + width, y2 + height - ry + KAPPA * ry, x + width - rx + KAPPA * rx, y2 + height, x + width - rx, y2 + height);
-              ctx.lineTo(x + rx, y2 + height);
-              ctx.bezierCurveTo(x + rx - KAPPA * rx, y2 + height, x, y2 + height - ry + KAPPA * ry, x, y2 + height - ry);
-              ctx.lineTo(x, y2 + ry);
-              ctx.bezierCurveTo(x, y2 + ry - KAPPA * ry, x + rx - KAPPA * rx, y2, x + rx, y2);
+              ctx.moveTo(x + rx, y);
+              ctx.lineTo(x + width - rx, y);
+              ctx.bezierCurveTo(x + width - rx + KAPPA * rx, y, x + width, y + ry - KAPPA * ry, x + width, y + ry);
+              ctx.lineTo(x + width, y + height - ry);
+              ctx.bezierCurveTo(x + width, y + height - ry + KAPPA * ry, x + width - rx + KAPPA * rx, y + height, x + width - rx, y + height);
+              ctx.lineTo(x + rx, y + height);
+              ctx.bezierCurveTo(x + rx - KAPPA * rx, y + height, x, y + height - ry + KAPPA * ry, x, y + height - ry);
+              ctx.lineTo(x, y + ry);
+              ctx.bezierCurveTo(x, y + ry - KAPPA * ry, x + rx - KAPPA * rx, y, x + rx, y);
               ctx.closePath();
             }
           }
-          return new BoundingBox(x, y2, x + width, y2 + height);
+          return new BoundingBox(x, y, x + width, y + height);
         }
       }, {
         key: "getMarkers",
@@ -21932,10 +22154,10 @@ var require_lib2 = __commonJS({
             ctx.moveTo(x0, y0);
           }
           points.forEach(function(_ref) {
-            var x = _ref.x, y2 = _ref.y;
-            boundingBox.addPoint(x, y2);
+            var x = _ref.x, y = _ref.y;
+            boundingBox.addPoint(x, y);
             if (ctx) {
-              ctx.lineTo(x, y2);
+              ctx.lineTo(x, y);
             }
           });
           return boundingBox;
@@ -22002,9 +22224,9 @@ var require_lib2 = __commonJS({
         key: "path",
         value: function path(ctx) {
           var boundingBox = _get__default["default"](_getPrototypeOf__default["default"](PolygonElement2.prototype), "path", this).call(this, ctx);
-          var _this$points = _slicedToArray__default["default"](this.points, 1), _this$points$ = _this$points[0], x = _this$points$.x, y2 = _this$points$.y;
+          var _this$points = _slicedToArray__default["default"](this.points, 1), _this$points$ = _this$points[0], x = _this$points$.x, y = _this$points$.y;
           if (ctx) {
-            ctx.lineTo(x, y2);
+            ctx.lineTo(x, y);
             ctx.closePath();
           }
           return boundingBox;
@@ -22074,10 +22296,10 @@ var require_lib2 = __commonJS({
             Reflect.deleteProperty(this.styles, "fill-opacity");
           }
           for (var x = -1; x <= 1; x++) {
-            for (var y2 = -1; y2 <= 1; y2++) {
+            for (var y = -1; y <= 1; y++) {
               patternCtx.save();
               patternSvg.attributes.x = new Property(this.document, "x", x * patternCanvas.width);
-              patternSvg.attributes.y = new Property(this.document, "y", y2 * patternCanvas.height);
+              patternSvg.attributes.y = new Property(this.document, "y", y * patternCanvas.height);
               patternSvg.render(patternCtx);
               patternCtx.restore();
             }
@@ -22128,14 +22350,14 @@ var require_lib2 = __commonJS({
       }
       _createClass__default["default"](MarkerElement2, [{
         key: "render",
-        value: function render(ctx, point, angle) {
+        value: function render2(ctx, point, angle) {
           if (!point) {
             return;
           }
-          var x = point.x, y2 = point.y;
+          var x = point.x, y = point.y;
           var orient = this.getAttribute("orient").getString("auto");
           var markerUnits = this.getAttribute("markerUnits").getString("strokeWidth");
-          ctx.translate(x, y2);
+          ctx.translate(x, y);
           if (orient === "auto") {
             ctx.rotate(angle);
           }
@@ -22162,7 +22384,7 @@ var require_lib2 = __commonJS({
           if (orient === "auto") {
             ctx.rotate(-angle);
           }
-          ctx.translate(-x, -y2);
+          ctx.translate(-x, -y);
         }
       }]);
       return MarkerElement2;
@@ -22207,7 +22429,7 @@ var require_lib2 = __commonJS({
       }
       _createClass__default["default"](DefsElement2, [{
         key: "render",
-        value: function render() {
+        value: function render2() {
         }
       }]);
       return DefsElement2;
@@ -22951,7 +23173,7 @@ var require_lib2 = __commonJS({
       }
       _createClass__default["default"](FontElement2, [{
         key: "render",
-        value: function render() {
+        value: function render2() {
         }
       }]);
       return FontElement2;
@@ -23148,11 +23370,11 @@ var require_lib2 = __commonJS({
         value: function renderChildren(ctx) {
           if (this.hasText) {
             _get__default["default"](_getPrototypeOf__default["default"](AElement2.prototype), "renderChildren", this).call(this, ctx);
-            var document2 = this.document, x = this.x, y2 = this.y;
+            var document2 = this.document, x = this.x, y = this.y;
             var mouse = document2.screen.mouse;
             var fontSize = new Property(document2, "fontSize", Font.parse(document2.ctx.font).fontSize);
             if (mouse.isWorking()) {
-              mouse.checkBoundingBox(this, new BoundingBox(x, y2 - fontSize.getPixels("y"), x + this.measureText(ctx), y2));
+              mouse.checkBoundingBox(this, new BoundingBox(x, y - fontSize.getPixels("y"), x + this.measureText(ctx), y));
             }
           } else if (this.children.length > 0) {
             var g = new GElement(this.document, null);
@@ -23609,28 +23831,28 @@ var require_lib2 = __commonJS({
       }, {
         key: "pathM",
         value: function pathM(pathParser, points) {
-          var _PathElement$pathM$po = PathElement.pathM(pathParser).point, x = _PathElement$pathM$po.x, y2 = _PathElement$pathM$po.y;
-          points.push(x, y2);
+          var _PathElement$pathM$po = PathElement.pathM(pathParser).point, x = _PathElement$pathM$po.x, y = _PathElement$pathM$po.y;
+          points.push(x, y);
         }
       }, {
         key: "pathL",
         value: function pathL(pathParser, points) {
-          var _PathElement$pathL$po = PathElement.pathL(pathParser).point, x = _PathElement$pathL$po.x, y2 = _PathElement$pathL$po.y;
-          points.push(x, y2);
+          var _PathElement$pathL$po = PathElement.pathL(pathParser).point, x = _PathElement$pathL$po.x, y = _PathElement$pathL$po.y;
+          points.push(x, y);
           return PathParser.LINE_TO;
         }
       }, {
         key: "pathH",
         value: function pathH(pathParser, points) {
-          var _PathElement$pathH$po = PathElement.pathH(pathParser).point, x = _PathElement$pathH$po.x, y2 = _PathElement$pathH$po.y;
-          points.push(x, y2);
+          var _PathElement$pathH$po = PathElement.pathH(pathParser).point, x = _PathElement$pathH$po.x, y = _PathElement$pathH$po.y;
+          points.push(x, y);
           return PathParser.LINE_TO;
         }
       }, {
         key: "pathV",
         value: function pathV(pathParser, points) {
-          var _PathElement$pathV$po = PathElement.pathV(pathParser).point, x = _PathElement$pathV$po.x, y2 = _PathElement$pathV$po.y;
-          points.push(x, y2);
+          var _PathElement$pathV$po = PathElement.pathV(pathParser).point, x = _PathElement$pathV$po.x, y = _PathElement$pathV$po.y;
+          points.push(x, y);
           return PathParser.LINE_TO;
         }
       }, {
@@ -23673,28 +23895,28 @@ var require_lib2 = __commonJS({
         }
       }, {
         key: "calcLength",
-        value: function calcLength(x, y2, commandType, points) {
+        value: function calcLength(x, y, commandType, points) {
           var len = 0;
           var p1 = null;
           var p2 = null;
           var t = 0;
           switch (commandType) {
             case PathParser.LINE_TO:
-              return this.getLineLength(x, y2, points[0], points[1]);
+              return this.getLineLength(x, y, points[0], points[1]);
             case PathParser.CURVE_TO:
               len = 0;
-              p1 = this.getPointOnCubicBezier(0, x, y2, points[0], points[1], points[2], points[3], points[4], points[5]);
+              p1 = this.getPointOnCubicBezier(0, x, y, points[0], points[1], points[2], points[3], points[4], points[5]);
               for (t = 0.01; t <= 1; t += 0.01) {
-                p2 = this.getPointOnCubicBezier(t, x, y2, points[0], points[1], points[2], points[3], points[4], points[5]);
+                p2 = this.getPointOnCubicBezier(t, x, y, points[0], points[1], points[2], points[3], points[4], points[5]);
                 len += this.getLineLength(p1.x, p1.y, p2.x, p2.y);
                 p1 = p2;
               }
               return len;
             case PathParser.QUAD_TO:
               len = 0;
-              p1 = this.getPointOnQuadraticBezier(0, x, y2, points[0], points[1], points[2], points[3]);
+              p1 = this.getPointOnQuadraticBezier(0, x, y, points[0], points[1], points[2], points[3]);
               for (t = 0.01; t <= 1; t += 0.01) {
-                p2 = this.getPointOnQuadraticBezier(t, x, y2, points[0], points[1], points[2], points[3]);
+                p2 = this.getPointOnQuadraticBezier(t, x, y, points[0], points[1], points[2], points[3]);
                 len += this.getLineLength(p1.x, p1.y, p2.x, p2.y);
                 p1 = p2;
               }
@@ -23734,19 +23956,19 @@ var require_lib2 = __commonJS({
         value: function getPointOnLine(dist, p1x, p1y, p2x, p2y) {
           var fromX = arguments.length > 5 && arguments[5] !== void 0 ? arguments[5] : p1x;
           var fromY = arguments.length > 6 && arguments[6] !== void 0 ? arguments[6] : p1y;
-          var m3 = (p2y - p1y) / (p2x - p1x + PSEUDO_ZERO);
-          var run = Math.sqrt(dist * dist / (1 + m3 * m3));
+          var m2 = (p2y - p1y) / (p2x - p1x + PSEUDO_ZERO);
+          var run = Math.sqrt(dist * dist / (1 + m2 * m2));
           if (p2x < p1x) {
             run *= -1;
           }
-          var rise = m3 * run;
+          var rise = m2 * run;
           var pt = null;
           if (p2x === p1x) {
             pt = {
               x: fromX,
               y: fromY + rise
             };
-          } else if ((fromY - p1y) / (fromX - p1x + PSEUDO_ZERO) === m3) {
+          } else if ((fromY - p1y) / (fromX - p1x + PSEUDO_ZERO) === m2) {
             pt = {
               x: fromX + run,
               y: fromY + rise
@@ -23764,11 +23986,11 @@ var require_lib2 = __commonJS({
             iy = p1y + u * (p2y - p1y);
             var pRise = this.getLineLength(fromX, fromY, ix, iy);
             var pRun = Math.sqrt(dist * dist - pRise * pRise);
-            run = Math.sqrt(pRun * pRun / (1 + m3 * m3));
+            run = Math.sqrt(pRun * pRun / (1 + m2 * m2));
             if (p2x < p1x) {
               run *= -1;
             }
-            rise = m3 * run;
+            rise = m2 * run;
             pt = {
               x: ix + run,
               y: iy + rise
@@ -23858,20 +24080,20 @@ var require_lib2 = __commonJS({
         key: "getPointOnCubicBezier",
         value: function getPointOnCubicBezier(pct, p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y) {
           var x = p4x * CB1(pct) + p3x * CB2(pct) + p2x * CB3(pct) + p1x * CB4(pct);
-          var y2 = p4y * CB1(pct) + p3y * CB2(pct) + p2y * CB3(pct) + p1y * CB4(pct);
+          var y = p4y * CB1(pct) + p3y * CB2(pct) + p2y * CB3(pct) + p1y * CB4(pct);
           return {
             x,
-            y: y2
+            y
           };
         }
       }, {
         key: "getPointOnQuadraticBezier",
         value: function getPointOnQuadraticBezier(pct, p1x, p1y, p2x, p2y, p3x, p3y) {
           var x = p3x * QB1(pct) + p2x * QB2(pct) + p1x * QB3(pct);
-          var y2 = p3y * QB1(pct) + p2y * QB2(pct) + p1y * QB3(pct);
+          var y = p3y * QB1(pct) + p2y * QB2(pct) + p1y * QB3(pct);
           return {
             x,
-            y: y2
+            y
           };
         }
       }, {
@@ -24078,14 +24300,14 @@ var require_lib2 = __commonJS({
         value: function renderChildren(ctx) {
           var document2 = this.document, image = this.image, loaded = this.loaded;
           var x = this.getAttribute("x").getPixels("x");
-          var y2 = this.getAttribute("y").getPixels("y");
+          var y = this.getAttribute("y").getPixels("y");
           var width = this.getStyle("width").getPixels("x");
           var height = this.getStyle("height").getPixels("y");
           if (!loaded || !image || !width || !height) {
             return;
           }
           ctx.save();
-          ctx.translate(x, y2);
+          ctx.translate(x, y);
           if (this.isSvg) {
             var subDocument = document2.canvg.forkString(ctx, this.image, {
               ignoreMouse: true,
@@ -24121,10 +24343,10 @@ var require_lib2 = __commonJS({
         key: "getBoundingBox",
         value: function getBoundingBox() {
           var x = this.getAttribute("x").getPixels("x");
-          var y2 = this.getAttribute("y").getPixels("y");
+          var y = this.getAttribute("y").getPixels("y");
           var width = this.getStyle("width").getPixels("x");
           var height = this.getStyle("height").getPixels("y");
-          return new BoundingBox(x, y2, x + width, y2 + height);
+          return new BoundingBox(x, y, x + width, y + height);
         }
       }]);
       return ImageElement2;
@@ -24169,7 +24391,7 @@ var require_lib2 = __commonJS({
       }
       _createClass__default["default"](SymbolElement2, [{
         key: "render",
-        value: function render(_) {
+        value: function render2(_) {
         }
       }]);
       return SymbolElement2;
@@ -24453,18 +24675,18 @@ var require_lib2 = __commonJS({
         return false;
       }
     }
-    function imGet(img, x, y2, width, _height, rgba) {
-      return img[y2 * width * 4 + x * 4 + rgba];
+    function imGet(img, x, y, width, _height, rgba) {
+      return img[y * width * 4 + x * 4 + rgba];
     }
-    function imSet(img, x, y2, width, _height, rgba, val) {
-      img[y2 * width * 4 + x * 4 + rgba] = val;
+    function imSet(img, x, y, width, _height, rgba, val) {
+      img[y * width * 4 + x * 4 + rgba] = val;
     }
-    function m2(matrix, i, v) {
+    function m(matrix, i, v) {
       var mi = matrix[i];
       return mi * v;
     }
-    function c(a, m1, m22, m3) {
-      return m1 + Math.cos(a) * m22 + Math.sin(a) * m3;
+    function c(a, m1, m2, m3) {
+      return m1 + Math.cos(a) * m2 + Math.sin(a) * m3;
     }
     var FeColorMatrixElement = /* @__PURE__ */ function(_Element) {
       _inherits__default["default"](FeColorMatrixElement2, _Element);
@@ -24499,26 +24721,26 @@ var require_lib2 = __commonJS({
         value: function apply(ctx, _x, _y, width, height) {
           var includeOpacity = this.includeOpacity, matrix = this.matrix;
           var srcData = ctx.getImageData(0, 0, width, height);
-          for (var y2 = 0; y2 < height; y2++) {
+          for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
-              var r = imGet(srcData.data, x, y2, width, height, 0);
-              var g = imGet(srcData.data, x, y2, width, height, 1);
-              var b = imGet(srcData.data, x, y2, width, height, 2);
-              var a = imGet(srcData.data, x, y2, width, height, 3);
-              var nr = m2(matrix, 0, r) + m2(matrix, 1, g) + m2(matrix, 2, b) + m2(matrix, 3, a) + m2(matrix, 4, 1);
-              var ng = m2(matrix, 5, r) + m2(matrix, 6, g) + m2(matrix, 7, b) + m2(matrix, 8, a) + m2(matrix, 9, 1);
-              var nb = m2(matrix, 10, r) + m2(matrix, 11, g) + m2(matrix, 12, b) + m2(matrix, 13, a) + m2(matrix, 14, 1);
-              var na = m2(matrix, 15, r) + m2(matrix, 16, g) + m2(matrix, 17, b) + m2(matrix, 18, a) + m2(matrix, 19, 1);
+              var r = imGet(srcData.data, x, y, width, height, 0);
+              var g = imGet(srcData.data, x, y, width, height, 1);
+              var b = imGet(srcData.data, x, y, width, height, 2);
+              var a = imGet(srcData.data, x, y, width, height, 3);
+              var nr = m(matrix, 0, r) + m(matrix, 1, g) + m(matrix, 2, b) + m(matrix, 3, a) + m(matrix, 4, 1);
+              var ng = m(matrix, 5, r) + m(matrix, 6, g) + m(matrix, 7, b) + m(matrix, 8, a) + m(matrix, 9, 1);
+              var nb = m(matrix, 10, r) + m(matrix, 11, g) + m(matrix, 12, b) + m(matrix, 13, a) + m(matrix, 14, 1);
+              var na = m(matrix, 15, r) + m(matrix, 16, g) + m(matrix, 17, b) + m(matrix, 18, a) + m(matrix, 19, 1);
               if (includeOpacity) {
                 nr = 0;
                 ng = 0;
                 nb = 0;
                 na *= a / 255;
               }
-              imSet(srcData.data, x, y2, width, height, 0, nr);
-              imSet(srcData.data, x, y2, width, height, 1, ng);
-              imSet(srcData.data, x, y2, width, height, 2, nb);
-              imSet(srcData.data, x, y2, width, height, 3, na);
+              imSet(srcData.data, x, y, width, height, 0, nr);
+              imSet(srcData.data, x, y, width, height, 1, ng);
+              imSet(srcData.data, x, y, width, height, 2, nb);
+              imSet(srcData.data, x, y, width, height, 3, na);
             }
           }
           ctx.clearRect(0, 0, width, height);
@@ -24570,7 +24792,7 @@ var require_lib2 = __commonJS({
         value: function apply(ctx, element) {
           var document2 = this.document;
           var x = this.getAttribute("x").getPixels("x");
-          var y2 = this.getAttribute("y").getPixels("y");
+          var y = this.getAttribute("y").getPixels("y");
           var width = this.getStyle("width").getPixels("x");
           var height = this.getStyle("height").getPixels("y");
           if (!width && !height) {
@@ -24579,12 +24801,12 @@ var require_lib2 = __commonJS({
               boundingBox.addBoundingBox(child.getBoundingBox(ctx));
             });
             x = Math.floor(boundingBox.x1);
-            y2 = Math.floor(boundingBox.y1);
+            y = Math.floor(boundingBox.y1);
             width = Math.floor(boundingBox.width);
             height = Math.floor(boundingBox.height);
           }
           var ignoredStyles = this.removeStyles(element, MaskElement2.ignoreStyles);
-          var maskCanvas = document2.createCanvas(x + width, y2 + height);
+          var maskCanvas = document2.createCanvas(x + width, y + height);
           var maskCtx = maskCanvas.getContext("2d");
           document2.screen.setDefaults(maskCtx);
           this.renderChildren(maskCtx);
@@ -24598,21 +24820,21 @@ var require_lib2 = __commonJS({
               nodeName: "includeOpacity",
               value: "true"
             }]
-          }).apply(maskCtx, 0, 0, x + width, y2 + height);
-          var tmpCanvas = document2.createCanvas(x + width, y2 + height);
+          }).apply(maskCtx, 0, 0, x + width, y + height);
+          var tmpCanvas = document2.createCanvas(x + width, y + height);
           var tmpCtx = tmpCanvas.getContext("2d");
           document2.screen.setDefaults(tmpCtx);
           element.render(tmpCtx);
           tmpCtx.globalCompositeOperation = "destination-in";
           tmpCtx.fillStyle = maskCtx.createPattern(maskCanvas, "no-repeat");
-          tmpCtx.fillRect(0, 0, x + width, y2 + height);
+          tmpCtx.fillRect(0, 0, x + width, y + height);
           ctx.fillStyle = tmpCtx.createPattern(tmpCanvas, "no-repeat");
-          ctx.fillRect(0, 0, x + width, y2 + height);
+          ctx.fillRect(0, 0, x + width, y + height);
           this.restoreStyles(element, ignoredStyles);
         }
       }, {
         key: "render",
-        value: function render(_) {
+        value: function render2(_) {
         }
       }]);
       return MaskElement2;
@@ -24697,7 +24919,7 @@ var require_lib2 = __commonJS({
         }
       }, {
         key: "render",
-        value: function render(_) {
+        value: function render2(_) {
         }
       }]);
       return ClipPathElement2;
@@ -24763,24 +24985,24 @@ var require_lib2 = __commonJS({
             return;
           }
           var x = Math.floor(boundingBox.x);
-          var y2 = Math.floor(boundingBox.y);
+          var y = Math.floor(boundingBox.y);
           var ignoredStyles = this.removeStyles(element, FilterElement2.ignoreStyles);
           var tmpCanvas = document2.createCanvas(tmpCanvasWidth, tmpCanvasHeight);
           var tmpCtx = tmpCanvas.getContext("2d");
           document2.screen.setDefaults(tmpCtx);
-          tmpCtx.translate(-x + px, -y2 + py);
+          tmpCtx.translate(-x + px, -y + py);
           element.render(tmpCtx);
           children.forEach(function(child) {
             if (typeof child.apply === "function") {
               child.apply(tmpCtx, 0, 0, tmpCanvasWidth, tmpCanvasHeight);
             }
           });
-          ctx.drawImage(tmpCanvas, 0, 0, tmpCanvasWidth, tmpCanvasHeight, x - px, y2 - py, tmpCanvasWidth, tmpCanvasHeight);
+          ctx.drawImage(tmpCanvas, 0, 0, tmpCanvasWidth, tmpCanvasHeight, x - px, y - py, tmpCanvasWidth, tmpCanvasHeight);
           this.restoreStyles(element, ignoredStyles);
         }
       }, {
         key: "render",
-        value: function render(_) {
+        value: function render2(_) {
         }
       }]);
       return FilterElement2;
@@ -24964,7 +25186,7 @@ var require_lib2 = __commonJS({
       }
       _createClass__default["default"](FeGaussianBlurElement2, [{
         key: "apply",
-        value: function apply(ctx, x, y2, width, height) {
+        value: function apply(ctx, x, y, width, height) {
           var document2 = this.document, blurRadius = this.blurRadius;
           var body = document2.window ? document2.window.document.body : null;
           var canvas = ctx.canvas;
@@ -24973,7 +25195,7 @@ var require_lib2 = __commonJS({
             canvas.style.display = "none";
             body.appendChild(canvas);
           }
-          stackblurCanvas.canvasRGBA(canvas, x, y2, width, height, blurRadius);
+          stackblurCanvas.canvasRGBA(canvas, x, y, width, height, blurRadius);
           if (body) {
             body.removeChild(canvas);
           }
@@ -25406,10 +25628,10 @@ var require_lib2 = __commonJS({
               }
             }, _callee, this);
           }));
-          function render() {
+          function render2() {
             return _render.apply(this, arguments);
           }
-          return render;
+          return render2;
         }()
         /**
          * Start rendering.
@@ -25660,7 +25882,7 @@ var require_jspdf_node_min = __commonJS({
       return r2;
     }
     var g = "0123456789abcdef".split("");
-    function m2(t2) {
+    function m(t2) {
       for (var e2 = "", r2 = 0; r2 < 4; r2++)
         e2 += g[t2 >> 8 * r2 + 4 & 15] + g[t2 >> 8 * r2 & 15];
       return e2;
@@ -25671,13 +25893,13 @@ var require_jspdf_node_min = __commonJS({
     function b(t2) {
       return d(t2).map(v).join("");
     }
-    var y2 = "5d41402abc4b2a76b9719d911017c592" != function(t2) {
+    var y = "5d41402abc4b2a76b9719d911017c592" != function(t2) {
       for (var e2 = 0; e2 < t2.length; e2++)
-        t2[e2] = m2(t2[e2]);
+        t2[e2] = m(t2[e2]);
       return t2.join("");
     }(d("hello"));
     function w(t2, e2) {
-      if (y2) {
+      if (y) {
         var r2 = (65535 & t2) + (65535 & e2);
         return (t2 >> 16) + (e2 >> 16) + (r2 >> 16) << 16 | 65535 & r2;
       }
@@ -25782,9 +26004,9 @@ var require_jspdf_node_min = __commonJS({
     function I(t2) {
       var r2, a2 = "string" == typeof arguments[0] ? arguments[0] : "p", s2 = arguments[1], c2 = arguments[2], u2 = arguments[3], h2 = [], l2 = 1, f2 = 16, d2 = "S", p2 = null;
       "object" == typeof (t2 = t2 || {}) && (a2 = t2.orientation, s2 = t2.unit || s2, c2 = t2.format || c2, u2 = t2.compress || t2.compressPdf || u2, null !== (p2 = t2.encryption || null) && (p2.userPassword = p2.userPassword || "", p2.ownerPassword = p2.ownerPassword || "", p2.userPermissions = p2.userPermissions || []), l2 = "number" == typeof t2.userUnit ? Math.abs(t2.userUnit) : 1, void 0 !== t2.precision && (r2 = t2.precision), void 0 !== t2.floatPrecision && (f2 = t2.floatPrecision), d2 = t2.defaultPathOperation || "S"), h2 = t2.filters || (true === u2 ? ["FlateEncode"] : h2), s2 = s2 || "mm", a2 = ("" + (a2 || "P")).toLowerCase();
-      var g2 = t2.putOnlyUsedFonts || false, m3 = {}, v2 = { internal: {}, __private__: {} };
+      var g2 = t2.putOnlyUsedFonts || false, m2 = {}, v2 = { internal: {}, __private__: {} };
       v2.__private__.PubSub = S;
-      var b2 = "1.3", y3 = v2.__private__.getPdfVersion = function() {
+      var b2 = "1.3", y2 = v2.__private__.getPdfVersion = function() {
         return b2;
       };
       v2.__private__.setPdfVersion = function(t3) {
@@ -26215,7 +26437,7 @@ var require_jspdf_node_min = __commonJS({
         Dt2.publish("putFont", { font: t3, out: ut2, newObject: Yt2, putStream: re2 }), true !== t3.isAlreadyPutted && (t3.objectNumber = Yt2(), ut2("<<"), ut2("/Type /Font"), ut2("/BaseFont /" + x(t3.postScriptName)), ut2("/Subtype /Type1"), "string" == typeof t3.encoding && ut2("/Encoding /" + t3.encoding), ut2("/FirstChar 32"), ut2("/LastChar 255"), ut2(">>"), ut2("endobj"));
       }, oe2 = function() {
         for (var t3 in kt2)
-          kt2.hasOwnProperty(t3) && (false === g2 || true === g2 && m3.hasOwnProperty(t3)) && ae2(kt2[t3]);
+          kt2.hasOwnProperty(t3) && (false === g2 || true === g2 && m2.hasOwnProperty(t3)) && ae2(kt2[t3]);
       }, se2 = function(t3) {
         t3.objectNumber = Yt2();
         var e2 = [];
@@ -26281,7 +26503,7 @@ var require_jspdf_node_min = __commonJS({
         Ve.oid = Yt2(), ut2("<<"), ut2("/Filter /Standard"), ut2("/V " + Ve.v), ut2("/R " + Ve.r), ut2("/U <" + Ve.toHexString(Ve.U) + ">"), ut2("/O <" + Ve.toHexString(Ve.O) + ">"), ut2("/P " + Ve.P), ut2(">>"), ut2("endobj");
       }, ve = function() {
         for (var t3 in ut2("/Font <<"), kt2)
-          kt2.hasOwnProperty(t3) && (false === g2 || true === g2 && m3.hasOwnProperty(t3)) && ut2("/" + t3 + " " + kt2[t3].objectNumber + " 0 R");
+          kt2.hasOwnProperty(t3) && (false === g2 || true === g2 && m2.hasOwnProperty(t3)) && ut2("/" + t3 + " " + kt2[t3].objectNumber + " 0 R");
         ut2(">>");
       }, be = function() {
         if (Object.keys(Ct2).length > 0) {
@@ -26322,7 +26544,7 @@ var require_jspdf_node_min = __commonJS({
       }, _e = function(t3) {
         for (var e2 = 0, r3 = ft2.length; e2 < r3; e2++) {
           var n2 = Se.call(this, t3[e2][0], t3[e2][1], t3[e2][2], ft2[e2][3], true);
-          false === g2 && (m3[n2] = true);
+          false === g2 && (m2[n2] = true);
           var i2 = t3[e2][0].split("-");
           xe({ id: n2, fontName: i2[0], fontStyle: i2[1] || "" });
         }
@@ -26580,7 +26802,7 @@ var require_jspdf_node_min = __commonJS({
           throw new Error("Invalid arguments passed to jsPDF.text");
         if (0 === t3.length)
           return p3;
-        var v3 = "", b3 = false, y4 = "number" == typeof n2.lineHeightFactor ? n2.lineHeightFactor : ur, w3 = p3.internal.scaleFactor;
+        var v3 = "", b3 = false, y3 = "number" == typeof n2.lineHeightFactor ? n2.lineHeightFactor : ur, w3 = p3.internal.scaleFactor;
         function N3(t4) {
           return t4 = t4.split("	").join(Array(n2.TabLen || 9).join(" ")), Fe(t4, l3);
         }
@@ -26613,7 +26835,7 @@ var require_jspdf_node_min = __commonJS({
         if (false === S2)
           throw new Error('Type of text must be string or Array. "' + t3 + '" is not recognized.');
         "string" == typeof t3 && (t3 = t3.match(/[\r?\n]/) ? t3.split(/\r\n|\r|\n/g) : [t3]);
-        var C3 = dt2 / p3.internal.scaleFactor, j3 = C3 * (y4 - 1);
+        var C3 = dt2 / p3.internal.scaleFactor, j3 = C3 * (y3 - 1);
         switch (n2.baseline) {
           case "bottom":
             r3 -= j3;
@@ -26675,7 +26897,7 @@ var require_jspdf_node_min = __commonJS({
         }
         var z3 = void 0 !== T3.usedRenderingMode ? T3.usedRenderingMode : -1;
         -1 !== E3 ? v3 += E3 + " Tr\n" : -1 !== z3 && (v3 += "0 Tr\n"), -1 !== E3 && (T3.usedRenderingMode = E3), c3 = n2.align || "left";
-        var U3, H3 = dt2 * y4, W3 = p3.internal.pageSize.getWidth(), V3 = kt2[At2];
+        var U3, H3 = dt2 * y3, W3 = p3.internal.pageSize.getWidth(), V3 = kt2[At2];
         u3 = n2.charSpace || xr, h3 = n2.maxWidth || 0, l3 = Object.assign({ autoencode: true, noBOM: true }, n2.flags);
         var G3 = [];
         if ("[object Array]" === Object.prototype.toString.call(t3)) {
@@ -26727,7 +26949,7 @@ var require_jspdf_node_min = __commonJS({
         }
         t3 = st3 === at3 ? t3.join(" Tj\nT* ") : t3.join(" Tj\n"), t3 += " Tj\n";
         var ft3 = "BT\n/";
-        return ft3 += At2 + " " + dt2 + " Tf\n", ft3 += B2(dt2 * y4) + " TL\n", ft3 += Lr + "\n", ft3 += v3, ft3 += t3, ut2(ft3 += "ET"), m3[At2] = true, p3;
+        return ft3 += At2 + " " + dt2 + " Tf\n", ft3 += B2(dt2 * y3) + " TL\n", ft3 += Lr + "\n", ft3 += v3, ft3 += t3, ut2(ft3 += "ET"), m2[At2] = true, p3;
       };
       var Ke = v2.__private__.clip = v2.clip = function(t3) {
         return ut2("evenodd" === t3 ? "W*" : "W"), this;
@@ -26826,11 +27048,11 @@ var require_jspdf_node_min = __commonJS({
           throw new Error("Invalid arguments passed to jsPDF.line");
         return P2 === L2.COMPAT ? this.lines([[r3 - t3, n2 - e2]], t3, e2, [1, 1], i2 || "S") : this.lines([[r3 - t3, n2 - e2]], t3, e2, [1, 1]).stroke();
       }, v2.__private__.lines = v2.lines = function(t3, e2, r3, n2, i2, a3) {
-        var o2, s3, c3, u3, h3, l3, f3, d3, p3, g3, m4, v3;
+        var o2, s3, c3, u3, h3, l3, f3, d3, p3, g3, m3, v3;
         if ("number" == typeof t3 && (v3 = r3, r3 = e2, e2 = t3, t3 = v3), n2 = n2 || [1, 1], a3 = a3 || false, isNaN(e2) || isNaN(r3) || !Array.isArray(t3) || !Array.isArray(n2) || !Ze(i2) || "boolean" != typeof a3)
           throw new Error("Invalid arguments passed to jsPDF.lines");
-        for (ar(e2, r3), o2 = n2[0], s3 = n2[1], u3 = t3.length, g3 = e2, m4 = r3, c3 = 0; c3 < u3; c3++)
-          2 === (h3 = t3[c3]).length ? (g3 = h3[0] * o2 + g3, m4 = h3[1] * s3 + m4, or(g3, m4)) : (l3 = h3[0] * o2 + g3, f3 = h3[1] * s3 + m4, d3 = h3[2] * o2 + g3, p3 = h3[3] * s3 + m4, g3 = h3[4] * o2 + g3, m4 = h3[5] * s3 + m4, sr(l3, f3, d3, p3, g3, m4));
+        for (ar(e2, r3), o2 = n2[0], s3 = n2[1], u3 = t3.length, g3 = e2, m3 = r3, c3 = 0; c3 < u3; c3++)
+          2 === (h3 = t3[c3]).length ? (g3 = h3[0] * o2 + g3, m3 = h3[1] * s3 + m3, or(g3, m3)) : (l3 = h3[0] * o2 + g3, f3 = h3[1] * s3 + m3, d3 = h3[2] * o2 + g3, p3 = h3[3] * s3 + m3, g3 = h3[4] * o2 + g3, m3 = h3[5] * s3 + m3, sr(l3, f3, d3, p3, g3, m3));
         return a3 && Qe(), er(i2), this;
       }, v2.path = function(t3) {
         for (var e2 = 0; e2 < t3.length; e2++) {
@@ -27089,7 +27311,7 @@ var require_jspdf_node_min = __commonJS({
         return Er(K2);
       }, setHeight: function(t3) {
         Dr(K2, t3);
-      } }, encryptionOptions: p2, encryption: Ve, getEncryptor: Ge, output: He, getNumberOfPages: Be, pages: it2, out: ut2, f2: E2, f3: D2, getPageInfo: Ye, getPageInfoByObjId: Je, getCurrentPageInfo: Xe, getPDFVersion: y3, Point: Fr, Rectangle: Ir, Matrix: Ht2, hasHotfix: We }, Object.defineProperty(v2.internal.pageSize, "width", { get: function() {
+      } }, encryptionOptions: p2, encryption: Ve, getEncryptor: Ge, output: He, getNumberOfPages: Be, pages: it2, out: ut2, f2: E2, f3: D2, getPageInfo: Ye, getPageInfoByObjId: Je, getCurrentPageInfo: Xe, getPDFVersion: y2, Point: Fr, Rectangle: Ir, Matrix: Ht2, hasHotfix: We }, Object.defineProperty(v2.internal.pageSize, "width", { get: function() {
         return qr(K2);
       }, set: function(t3) {
         Mr(K2, t3);
@@ -27220,23 +27442,23 @@ var require_jspdf_node_min = __commonJS({
       t:
         for (; a2 > 0; ) {
           e2 = "", a2--;
-          var u2, h2, l2 = X("3", t2, a2).height, f2 = t2.multiline ? o2 - a2 : (o2 - l2) / 2, d2 = f2 += 2, p2 = 0, g2 = 0, m3 = 0;
+          var u2, h2, l2 = X("3", t2, a2).height, f2 = t2.multiline ? o2 - a2 : (o2 - l2) / 2, d2 = f2 += 2, p2 = 0, g2 = 0, m2 = 0;
           if (a2 <= 0) {
             e2 = "(...) Tj\n", e2 += "% Width of Text: " + X(e2, t2, a2 = 12).width + ", FieldWidth:" + s2 + "\n";
             break;
           }
-          for (var v2 = "", b2 = 0, y3 = 0; y3 < i2.length; y3++)
-            if (i2.hasOwnProperty(y3)) {
+          for (var v2 = "", b2 = 0, y2 = 0; y2 < i2.length; y2++)
+            if (i2.hasOwnProperty(y2)) {
               let r3 = false;
-              if (1 !== i2[y3].length && m3 !== i2[y3].length - 1) {
+              if (1 !== i2[y2].length && m2 !== i2[y2].length - 1) {
                 if ((l2 + 2) * (b2 + 2) + 2 > o2)
                   continue t;
-                v2 += i2[y3][m3], r3 = true, g2 = y3, y3--;
+                v2 += i2[y2][m2], r3 = true, g2 = y2, y2--;
               } else {
-                v2 = " " == (v2 += i2[y3][m3] + " ").substr(v2.length - 1) ? v2.substr(0, v2.length - 1) : v2;
-                var w2 = parseInt(y3), N2 = c2(w2, v2, a2), L2 = y3 >= i2.length - 1;
+                v2 = " " == (v2 += i2[y2][m2] + " ").substr(v2.length - 1) ? v2.substr(0, v2.length - 1) : v2;
+                var w2 = parseInt(y2), N2 = c2(w2, v2, a2), L2 = y2 >= i2.length - 1;
                 if (N2 && !L2) {
-                  v2 += " ", m3 = 0;
+                  v2 += " ", m2 = 0;
                   continue;
                 }
                 if (N2 || L2) {
@@ -27256,7 +27478,7 @@ var require_jspdf_node_min = __commonJS({
                 var S2 = i2[x2];
                 if (t2.multiline) {
                   if (x2 === g2) {
-                    A2 += S2[m3] + " ", m3 = (m3 + 1) % S2.length;
+                    A2 += S2[m2] + " ", m2 = (m2 + 1) % S2.length;
                     continue;
                   }
                   if (x2 === p2) {
@@ -28087,7 +28309,7 @@ var require_jspdf_node_min = __commonJS({
         }
       }, g2 = function(t2, e3, r3) {
         return t2 || e3 || (t2 = -96, e3 = -96), t2 < 0 && (t2 = -1 * r3.width * 72 / t2 / this.internal.scaleFactor), e3 < 0 && (e3 = -1 * r3.height * 72 / e3 / this.internal.scaleFactor), 0 === t2 && (t2 = e3 * r3.width / r3.height), 0 === e3 && (e3 = t2 * r3.height / r3.width), [t2, e3];
-      }, m3 = function(t2, e3, r3, n3, i3, a3) {
+      }, m2 = function(t2, e3, r3, n3, i3, a3) {
         var o3 = g2.call(this, r3, n3, i3), s3 = this.internal.getCoordinateString, c3 = this.internal.getVerticalCoordinateString, h3 = u2.call(this);
         if (r3 = o3[0], n3 = o3[1], h3[i3.index] = i3, a3) {
           a3 *= Math.PI / 180;
@@ -28098,7 +28320,7 @@ var require_jspdf_node_min = __commonJS({
         this.internal.write("q"), a3 ? (this.internal.write([1, "0", "0", 1, s3(t2), c3(e3 + n3), "cm"].join(" ")), this.internal.write(p3.join(" ")), this.internal.write([s3(r3), "0", "0", s3(n3), "0", "0", "cm"].join(" "))) : this.internal.write([s3(r3), "0", "0", s3(n3), s3(t2), c3(e3 + n3), "cm"].join(" ")), this.isAdvancedAPI() && this.internal.write([1, 0, 0, -1, 0, 0, "cm"].join(" ")), this.internal.write("/I" + i3.index + " Do"), this.internal.write("Q");
       }, v2 = e2.color_spaces = { DEVICE_RGB: "DeviceRGB", DEVICE_GRAY: "DeviceGray", DEVICE_CMYK: "DeviceCMYK", CAL_GREY: "CalGray", CAL_RGB: "CalRGB", LAB: "Lab", ICC_BASED: "ICCBased", INDEXED: "Indexed", PATTERN: "Pattern", SEPARATION: "Separation", DEVICE_N: "DeviceN" };
       e2.decode = { DCT_DECODE: "DCTDecode", FLATE_DECODE: "FlateDecode", LZW_DECODE: "LZWDecode", JPX_DECODE: "JPXDecode", JBIG2_DECODE: "JBIG2Decode", ASCII85_DECODE: "ASCII85Decode", ASCII_HEX_DECODE: "ASCIIHexDecode", RUN_LENGTH_DECODE: "RunLengthDecode", CCITT_FAX_DECODE: "CCITTFaxDecode" };
-      var b2 = e2.image_compression = { NONE: "NONE", FAST: "FAST", MEDIUM: "MEDIUM", SLOW: "SLOW" }, y3 = e2.__addimage__.sHashCode = function(t2) {
+      var b2 = e2.image_compression = { NONE: "NONE", FAST: "FAST", MEDIUM: "MEDIUM", SLOW: "SLOW" }, y2 = e2.__addimage__.sHashCode = function(t2) {
         var e3, r3, n3 = 0;
         if ("string" == typeof t2)
           for (r3 = t2.length, e3 = 0; e3 < r3; e3++)
@@ -28146,7 +28368,7 @@ var require_jspdf_node_min = __commonJS({
           throw new Error("Invalid coordinates passed to jsPDF.addImage");
         c2.call(this);
         var p3 = _2.call(this, t2, e3, s3, u3);
-        return m3.call(this, n3, i3, a3, o3, p3, h3), this;
+        return m2.call(this, n3, i3, a3, o3, p3, h3), this;
       };
       var _2 = function(t2, n3, a3, o3) {
         var s3, c3, u3;
@@ -28158,7 +28380,7 @@ var require_jspdf_node_min = __commonJS({
         if (f2(t2) && (t2 = d2(t2, n3)), n3 = i2(t2, n3), !l2(n3))
           throw new Error("addImage does not support files of type '" + n3 + "', please ensure that a plugin for '" + n3 + "' support is added.");
         if ((null == (u3 = a3) || 0 === u3.length) && (a3 = function(t3) {
-          return "string" == typeof t3 || A2(t3) ? y3(t3) : A2(t3.data) ? y3(t3.data) : null;
+          return "string" == typeof t3 || A2(t3) ? y2(t3) : A2(t3.data) ? y2(t3.data) : null;
         }(t2)), (s3 = p2.call(this, a3)) || (L2() && (t2 instanceof Uint8Array || "RGBA" === n3 || (c3 = t2, t2 = x2(t2))), s3 = this["process" + n3.toUpperCase()](t2, h2.call(this), a3, function(t3) {
           return t3 && "string" == typeof t3 && (t3 = t3.toUpperCase()), t3 in e2.image_compression ? t3 : b2.NONE;
         }(o3), c3)), !s3)
@@ -28222,15 +28444,15 @@ var require_jspdf_node_min = __commonJS({
                 this.internal.write(" " + r2.object.objId + " 0 R ");
                 break;
               case "text":
-                var p2 = this.internal.newAdditionalObject(), g2 = this.internal.newAdditionalObject(), m3 = this.internal.getEncryptor(p2.objId), v2 = r2.title || "Note";
-                i2 = "<</Type /Annot /Subtype /Text " + (n2 = "/Rect [" + a2(r2.bounds.x) + " " + o2(r2.bounds.y + r2.bounds.h) + " " + a2(r2.bounds.x + r2.bounds.w) + " " + o2(r2.bounds.y) + "] ") + "/Contents (" + f2(m3(r2.contents)) + ")", i2 += " /Popup " + g2.objId + " 0 R", i2 += " /P " + s2.objId + " 0 R", i2 += " /T (" + f2(m3(v2)) + ") >>", p2.content = i2;
+                var p2 = this.internal.newAdditionalObject(), g2 = this.internal.newAdditionalObject(), m2 = this.internal.getEncryptor(p2.objId), v2 = r2.title || "Note";
+                i2 = "<</Type /Annot /Subtype /Text " + (n2 = "/Rect [" + a2(r2.bounds.x) + " " + o2(r2.bounds.y + r2.bounds.h) + " " + a2(r2.bounds.x + r2.bounds.w) + " " + o2(r2.bounds.y) + "] ") + "/Contents (" + f2(m2(r2.contents)) + ")", i2 += " /Popup " + g2.objId + " 0 R", i2 += " /P " + s2.objId + " 0 R", i2 += " /T (" + f2(m2(v2)) + ") >>", p2.content = i2;
                 var b2 = p2.objId + " 0 R";
                 i2 = "<</Type /Annot /Subtype /Popup " + (n2 = "/Rect [" + a2(r2.bounds.x + 30) + " " + o2(r2.bounds.y + r2.bounds.h) + " " + a2(r2.bounds.x + r2.bounds.w + 30) + " " + o2(r2.bounds.y) + "] ") + " /Parent " + b2, r2.open && (i2 += " /Open true"), i2 += " >>", g2.content = i2, this.internal.write(p2.objId, "0 R", g2.objId, "0 R");
                 break;
               case "freetext":
                 n2 = "/Rect [" + a2(r2.bounds.x) + " " + o2(r2.bounds.y) + " " + a2(r2.bounds.x + r2.bounds.w) + " " + o2(r2.bounds.y + r2.bounds.h) + "] ";
-                var y3 = r2.color || "#000000";
-                i2 = "<</Type /Annot /Subtype /FreeText " + n2 + "/Contents (" + f2(d2(r2.contents)) + ")", i2 += " /DS(font: Helvetica,sans-serif 12.0pt; text-align:left; color:#" + y3 + ")", i2 += " /Border [0 0 0]", i2 += " >>", this.internal.write(i2);
+                var y2 = r2.color || "#000000";
+                i2 = "<</Type /Annot /Subtype /FreeText " + n2 + "/Contents (" + f2(d2(r2.contents)) + ")", i2 += " /DS(font: Helvetica,sans-serif 12.0pt; text-align:left; color:#" + y2 + ")", i2 += " /Border [0 0 0]", i2 += " >>", this.internal.write(i2);
                 break;
               case "link":
                 if (r2.options.name) {
@@ -28531,39 +28753,39 @@ var require_jspdf_node_min = __commonJS({
       t2.table = function(t3, r3, c2, u2, h2) {
         if (n2.call(this), !c2)
           throw new Error("No data for PDF table.");
-        var l2, f2, d2, p2, g2 = [], m3 = [], v2 = [], b2 = {}, y3 = {}, w2 = [], N2 = [], L2 = (h2 = h2 || {}).autoSize || false, A2 = false !== h2.printHeaders, x2 = h2.css && void 0 !== h2.css["font-size"] ? 16 * h2.css["font-size"] : h2.fontSize || 12, S2 = h2.margins || Object.assign({ width: this.getPageWidth() }, e2), _2 = "number" == typeof h2.padding ? h2.padding : 3, P2 = h2.headerBackgroundColor || "#c8c8c8", k2 = h2.headerTextColor || "#000";
+        var l2, f2, d2, p2, g2 = [], m2 = [], v2 = [], b2 = {}, y2 = {}, w2 = [], N2 = [], L2 = (h2 = h2 || {}).autoSize || false, A2 = false !== h2.printHeaders, x2 = h2.css && void 0 !== h2.css["font-size"] ? 16 * h2.css["font-size"] : h2.fontSize || 12, S2 = h2.margins || Object.assign({ width: this.getPageWidth() }, e2), _2 = "number" == typeof h2.padding ? h2.padding : 3, P2 = h2.headerBackgroundColor || "#c8c8c8", k2 = h2.headerTextColor || "#000";
         if (i2.call(this), this.internal.__cell__.printHeaders = A2, this.internal.__cell__.margins = S2, this.internal.__cell__.table_font_size = x2, this.internal.__cell__.padding = _2, this.internal.__cell__.headerBackgroundColor = P2, this.internal.__cell__.headerTextColor = k2, this.setFontSize(x2), null == u2)
-          m3 = g2 = Object.keys(c2[0]), v2 = g2.map(function() {
+          m2 = g2 = Object.keys(c2[0]), v2 = g2.map(function() {
             return "left";
           });
         else if (Array.isArray(u2) && "object" == typeof u2[0])
           for (g2 = u2.map(function(t4) {
             return t4.name;
-          }), m3 = u2.map(function(t4) {
+          }), m2 = u2.map(function(t4) {
             return t4.prompt || t4.name || "";
           }), v2 = u2.map(function(t4) {
             return t4.align || "left";
           }), l2 = 0; l2 < u2.length; l2 += 1)
-            y3[u2[l2].name] = u2[l2].width * (19.049976 / 25.4);
+            y2[u2[l2].name] = u2[l2].width * (19.049976 / 25.4);
         else
-          Array.isArray(u2) && "string" == typeof u2[0] && (m3 = g2 = u2, v2 = g2.map(function() {
+          Array.isArray(u2) && "string" == typeof u2[0] && (m2 = g2 = u2, v2 = g2.map(function() {
             return "left";
           }));
         if (L2 || Array.isArray(u2) && "string" == typeof u2[0])
           for (l2 = 0; l2 < g2.length; l2 += 1) {
             for (b2[p2 = g2[l2]] = c2.map(function(t4) {
               return t4[p2];
-            }), this.setFont(void 0, "bold"), w2.push(this.getTextDimensions(m3[l2], { fontSize: this.internal.__cell__.table_font_size, scaleFactor: this.internal.scaleFactor }).w), f2 = b2[p2], this.setFont(void 0, "normal"), d2 = 0; d2 < f2.length; d2 += 1)
+            }), this.setFont(void 0, "bold"), w2.push(this.getTextDimensions(m2[l2], { fontSize: this.internal.__cell__.table_font_size, scaleFactor: this.internal.scaleFactor }).w), f2 = b2[p2], this.setFont(void 0, "normal"), d2 = 0; d2 < f2.length; d2 += 1)
               w2.push(this.getTextDimensions(f2[d2], { fontSize: this.internal.__cell__.table_font_size, scaleFactor: this.internal.scaleFactor }).w);
-            y3[p2] = Math.max.apply(null, w2) + _2 + _2, w2 = [];
+            y2[p2] = Math.max.apply(null, w2) + _2 + _2, w2 = [];
           }
         if (A2) {
           var F2 = {};
           for (l2 = 0; l2 < g2.length; l2 += 1)
-            F2[g2[l2]] = {}, F2[g2[l2]].text = m3[l2], F2[g2[l2]].align = v2[l2];
-          var I2 = s2.call(this, F2, y3);
+            F2[g2[l2]] = {}, F2[g2[l2]].text = m2[l2], F2[g2[l2]].align = v2[l2];
+          var I2 = s2.call(this, F2, y2);
           N2 = g2.map(function(e3) {
-            return new a2(t3, r3, y3[e3], I2, F2[e3].text, void 0, F2[e3].align);
+            return new a2(t3, r3, y2[e3], I2, F2[e3].text, void 0, F2[e3].align);
           }), this.setTableHeaderRow(N2), this.printHeaderRow(1, false);
         }
         var C2 = u2.reduce(function(t4, e3) {
@@ -28571,10 +28793,10 @@ var require_jspdf_node_min = __commonJS({
         }, {});
         for (l2 = 0; l2 < c2.length; l2 += 1) {
           "rowStart" in h2 && h2.rowStart instanceof Function && h2.rowStart({ row: l2, data: c2[l2] }, this);
-          var j2 = s2.call(this, c2[l2], y3);
+          var j2 = s2.call(this, c2[l2], y2);
           for (d2 = 0; d2 < g2.length; d2 += 1) {
             var O2 = c2[l2][g2[d2]];
-            "cellStart" in h2 && h2.cellStart instanceof Function && h2.cellStart({ row: l2, col: d2, data: O2 }, this), o2.call(this, new a2(t3, r3, y3[g2[d2]], j2, O2, l2 + 2, C2[g2[d2]]));
+            "cellStart" in h2 && h2.cellStart instanceof Function && h2.cellStart({ row: l2, col: d2, data: O2 }, this), o2.call(this, new a2(t3, r3, y2[g2[d2]], j2, O2, l2 + 2, C2[g2[d2]]));
           }
         }
         return this.internal.__cell__.table_x = t3, this.internal.__cell__.table_y = r3, this;
@@ -29005,7 +29227,7 @@ var require_jspdf_node_min = __commonJS({
       }, d2.prototype.strokeRect = function(t3, e3, r3, n3) {
         if (isNaN(t3) || isNaN(e3) || isNaN(r3) || isNaN(n3))
           throw o.error("jsPDF.context2d.strokeRect: Invalid arguments", arguments), new Error("Invalid arguments passed to jsPDF.context2d.strokeRect");
-        m3.call(this) || (this.beginPath(), this.rect(t3, e3, r3, n3), this.stroke());
+        m2.call(this) || (this.beginPath(), this.rect(t3, e3, r3, n3), this.stroke());
       }, d2.prototype.clearRect = function(t3, e3, r3, n3) {
         if (isNaN(t3) || isNaN(e3) || isNaN(r3) || isNaN(n3))
           throw o.error("jsPDF.context2d.clearRect: Invalid arguments", arguments), new Error("Invalid arguments passed to jsPDF.context2d.clearRect");
@@ -29050,7 +29272,7 @@ var require_jspdf_node_min = __commonJS({
         return { r: e3, g: r3, b: n3, a: a3, style: t3 };
       }, g2 = function() {
         return this.ctx.isFillTransparent || 0 == this.globalAlpha;
-      }, m3 = function() {
+      }, m2 = function() {
         return Boolean(this.ctx.isStrokeTransparent || 0 == this.globalAlpha);
       };
       d2.prototype.fillText = function(t3, e3, r3, n3) {
@@ -29063,7 +29285,7 @@ var require_jspdf_node_min = __commonJS({
       }, d2.prototype.strokeText = function(t3, e3, r3, n3) {
         if (isNaN(e3) || isNaN(r3) || "string" != typeof t3)
           throw o.error("jsPDF.context2d.strokeText: Invalid arguments", arguments), new Error("Invalid arguments passed to jsPDF.context2d.strokeText");
-        if (!m3.call(this)) {
+        if (!m2.call(this)) {
           n3 = isNaN(n3) ? void 0 : n3;
           var i2 = M2(this.ctx.transform.rotation), a3 = this.ctx.transform.scaleX;
           I2.call(this, { text: t3, x: e3, y: r3, scale: a3, renderingMode: "stroke", angle: i2, align: this.textAlign, maxWidth: n3 });
@@ -29107,7 +29329,7 @@ var require_jspdf_node_min = __commonJS({
       d2.prototype.drawImage = function(t3, e3, r3, n3, i2, a3, o2, s3, c3) {
         var l3 = this.pdf.getImageProperties(t3), f3 = 1, d3 = 1, p3 = 1, g3 = 1;
         void 0 !== n3 && void 0 !== s3 && (p3 = s3 / n3, g3 = c3 / i2, f3 = l3.width / n3 * s3 / n3, d3 = l3.height / i2 * c3 / i2), void 0 === a3 && (a3 = e3, o2 = r3, e3 = 0, r3 = 0), void 0 !== n3 && void 0 === s3 && (s3 = n3, c3 = i2), void 0 === n3 && void 0 === s3 && (s3 = l3.width, c3 = l3.height);
-        for (var m4, y4 = this.ctx.transform.decompose(), L3 = M2(y4.rotate.shx), x3 = new h2(), S3 = (x3 = (x3 = (x3 = x3.multiply(y4.translate)).multiply(y4.skew)).multiply(y4.scale)).applyToRectangle(new u2(a3 - e3 * p3, o2 - r3 * g3, n3 * f3, i2 * d3)), _3 = b2.call(this, S3), P3 = [], k3 = 0; k3 < _3.length; k3 += 1)
+        for (var m3, y3 = this.ctx.transform.decompose(), L3 = M2(y3.rotate.shx), x3 = new h2(), S3 = (x3 = (x3 = (x3 = x3.multiply(y3.translate)).multiply(y3.skew)).multiply(y3.scale)).applyToRectangle(new u2(a3 - e3 * p3, o2 - r3 * g3, n3 * f3, i2 * d3)), _3 = b2.call(this, S3), P3 = [], k3 = 0; k3 < _3.length; k3 += 1)
           -1 === P3.indexOf(_3[k3]) && P3.push(_3[k3]);
         if (N2(P3), this.autoPaging)
           for (var F3 = P3[0], I3 = P3[P3.length - 1], C3 = F3; C3 < I3 + 1; C3++) {
@@ -29115,7 +29337,7 @@ var require_jspdf_node_min = __commonJS({
             var j3 = this.pdf.internal.pageSize.width - this.margin[3] - this.margin[1], O3 = 1 === C3 ? this.posY + this.margin[0] : this.margin[0], B3 = this.pdf.internal.pageSize.height - this.posY - this.margin[0] - this.margin[2], q3 = this.pdf.internal.pageSize.height - this.margin[0] - this.margin[2], E3 = 1 === C3 ? 0 : B3 + (C3 - 2) * q3;
             if (0 !== this.ctx.clip_path.length) {
               var D3 = this.path;
-              m4 = JSON.parse(JSON.stringify(this.ctx.clip_path)), this.path = w2(m4, this.posX + this.margin[3], -E3 + O3 + this.ctx.prevPageLastElemOffset), A2.call(this, "fill", true), this.path = D3;
+              m3 = JSON.parse(JSON.stringify(this.ctx.clip_path)), this.path = w2(m3, this.posX + this.margin[3], -E3 + O3 + this.ctx.prevPageLastElemOffset), A2.call(this, "fill", true), this.path = D3;
             }
             var R3 = JSON.parse(JSON.stringify(S3));
             R3 = w2([R3], this.posX + this.margin[3], -E3 + O3 + this.ctx.prevPageLastElemOffset)[0];
@@ -29151,9 +29373,9 @@ var require_jspdf_node_min = __commonJS({
         }
         for (var s3 = 0; s3 < n3.length; s3 += 1)
           for (; this.pdf.internal.getNumberOfPages() < n3[s3]; )
-            y3.call(this);
+            y2.call(this);
         return n3;
-      }, y3 = function() {
+      }, y2 = function() {
         var t3 = this.fillStyle, e3 = this.strokeStyle, r3 = this.font, n3 = this.lineCap, i2 = this.lineWidth, a3 = this.lineJoin;
         this.pdf.addPage(), this.fillStyle = t3, this.strokeStyle = e3, this.font = r3, this.lineCap = n3, this.lineWidth = i2, this.lineJoin = a3;
       }, w2 = function(t3, e3, r3) {
@@ -29179,9 +29401,9 @@ var require_jspdf_node_min = __commonJS({
           if (void 0 !== l3[d3].x)
             for (var p3 = b2.call(this, l3[d3]), g3 = 0; g3 < p3.length; g3 += 1)
               -1 === f3.indexOf(p3[g3]) && f3.push(p3[g3]);
-        for (var m4 = 0; m4 < f3.length; m4++)
-          for (; this.pdf.internal.getNumberOfPages() < f3[m4]; )
-            y3.call(this);
+        for (var m3 = 0; m3 < f3.length; m3++)
+          for (; this.pdf.internal.getNumberOfPages() < f3[m3]; )
+            y2.call(this);
         if (N2(f3), this.autoPaging)
           for (var L3 = f3[0], x3 = f3[f3.length - 1], S3 = L3; S3 < x3 + 1; S3++) {
             this.pdf.setPage(S3), this.fillStyle = i2, this.strokeStyle = a3, this.lineCap = o2, this.lineWidth = c3, this.lineJoin = u3;
@@ -29200,7 +29422,7 @@ var require_jspdf_node_min = __commonJS({
           this.lineWidth = c3, A2.call(this, t3, e3), this.lineWidth = s3;
         this.path = h3;
       }, A2 = function(t3, e3) {
-        if (("stroke" !== t3 || e3 || !m3.call(this)) && ("stroke" === t3 || e3 || !g2.call(this))) {
+        if (("stroke" !== t3 || e3 || !m2.call(this)) && ("stroke" === t3 || e3 || !g2.call(this))) {
           for (var r3, n3, i2 = [], a3 = this.path, o2 = 0; o2 < a3.length; o2++) {
             var s3 = a3[o2];
             switch (s3.type) {
@@ -29237,8 +29459,8 @@ var require_jspdf_node_min = __commonJS({
           n3 = e3 ? null : "stroke" === t3 ? "stroke" : "fill";
           for (var v3 = false, b3 = 0; b3 < i2.length; b3++)
             if (i2[b3].arc)
-              for (var y4 = i2[b3].abs, w3 = 0; w3 < y4.length; w3++) {
-                var N3 = y4[w3];
+              for (var y3 = i2[b3].abs, w3 = 0; w3 < y3.length; w3++) {
+                var N3 = y3[w3];
                 "arc" === N3.type ? _2.call(this, N3.x, N3.y, N3.radius, N3.startAngle, N3.endAngle, N3.counterclockwise, void 0, e3, !v3) : C2.call(this, N3.x, N3.y), v3 = true;
               }
             else if (true === i2[b3].close)
@@ -29317,10 +29539,10 @@ var require_jspdf_node_min = __commonJS({
         }
         var r3 = this.pdf.getTextDimensions(t3.text), n3 = x2.call(this, t3.y), i2 = S2.call(this, n3) - r3.h, a3 = this.ctx.transform.applyToPoint(new c2(t3.x, n3)), o2 = this.ctx.transform.decompose(), s3 = new h2();
         s3 = (s3 = (s3 = s3.multiply(o2.translate)).multiply(o2.skew)).multiply(o2.scale);
-        for (var l3, f3, d3, p3 = this.ctx.transform.applyToRectangle(new u2(t3.x, n3, r3.w, r3.h)), g3 = s3.applyToRectangle(new u2(t3.x, i2, r3.w, r3.h)), m4 = b2.call(this, g3), y4 = [], L3 = 0; L3 < m4.length; L3 += 1)
-          -1 === y4.indexOf(m4[L3]) && y4.push(m4[L3]);
-        if (N2(y4), this.autoPaging)
-          for (var _3 = y4[0], P3 = y4[y4.length - 1], k3 = _3; k3 < P3 + 1; k3++) {
+        for (var l3, f3, d3, p3 = this.ctx.transform.applyToRectangle(new u2(t3.x, n3, r3.w, r3.h)), g3 = s3.applyToRectangle(new u2(t3.x, i2, r3.w, r3.h)), m3 = b2.call(this, g3), y3 = [], L3 = 0; L3 < m3.length; L3 += 1)
+          -1 === y3.indexOf(m3[L3]) && y3.push(m3[L3]);
+        if (N2(y3), this.autoPaging)
+          for (var _3 = y3[0], P3 = y3[y3.length - 1], k3 = _3; k3 < P3 + 1; k3++) {
             this.pdf.setPage(k3);
             var F3 = 1 === k3 ? this.posY + this.margin[0] : this.margin[0], I3 = this.pdf.internal.pageSize.height - this.posY - this.margin[0] - this.margin[2], C3 = this.pdf.internal.pageSize.height - this.margin[2], j3 = C3 - this.margin[0], O3 = this.pdf.internal.pageSize.width - this.margin[1], B3 = O3 - this.margin[3], q3 = 1 === k3 ? 0 : I3 + (k3 - 2) * j3;
             if (0 !== this.ctx.clip_path.length) {
@@ -29359,18 +29581,18 @@ var require_jspdf_node_min = __commonJS({
         }
         return s3;
       }, q2 = function(t3, e3, r3) {
-        var n3 = (r3 - e3) / 2, i2 = t3 * Math.cos(n3), a3 = t3 * Math.sin(n3), o2 = i2, s3 = -a3, c3 = o2 * o2 + s3 * s3, u3 = c3 + o2 * i2 + s3 * a3, h3 = 4 / 3 * (Math.sqrt(2 * c3 * u3) - u3) / (o2 * a3 - s3 * i2), l3 = o2 - h3 * s3, f3 = s3 + h3 * o2, d3 = l3, p3 = -f3, g3 = n3 + e3, m4 = Math.cos(g3), v3 = Math.sin(g3);
-        return { x1: t3 * Math.cos(e3), y1: t3 * Math.sin(e3), x2: l3 * m4 - f3 * v3, y2: l3 * v3 + f3 * m4, x3: d3 * m4 - p3 * v3, y3: d3 * v3 + p3 * m4, x4: t3 * Math.cos(r3), y4: t3 * Math.sin(r3) };
+        var n3 = (r3 - e3) / 2, i2 = t3 * Math.cos(n3), a3 = t3 * Math.sin(n3), o2 = i2, s3 = -a3, c3 = o2 * o2 + s3 * s3, u3 = c3 + o2 * i2 + s3 * a3, h3 = 4 / 3 * (Math.sqrt(2 * c3 * u3) - u3) / (o2 * a3 - s3 * i2), l3 = o2 - h3 * s3, f3 = s3 + h3 * o2, d3 = l3, p3 = -f3, g3 = n3 + e3, m3 = Math.cos(g3), v3 = Math.sin(g3);
+        return { x1: t3 * Math.cos(e3), y1: t3 * Math.sin(e3), x2: l3 * m3 - f3 * v3, y2: l3 * v3 + f3 * m3, x3: d3 * m3 - p3 * v3, y3: d3 * v3 + p3 * m3, x4: t3 * Math.cos(r3), y4: t3 * Math.sin(r3) };
       }, M2 = function(t3) {
         return 180 * t3 / Math.PI;
       }, E2 = function(t3, e3, r3, n3, i2, a3) {
         var o2 = t3 + 0.5 * (r3 - t3), s3 = e3 + 0.5 * (n3 - e3), c3 = i2 + 0.5 * (r3 - i2), h3 = a3 + 0.5 * (n3 - a3), l3 = Math.min(t3, i2, o2, c3), f3 = Math.max(t3, i2, o2, c3), d3 = Math.min(e3, a3, s3, h3), p3 = Math.max(e3, a3, s3, h3);
         return new u2(l3, d3, f3 - l3, p3 - d3);
       }, D2 = function(t3, e3, r3, n3, i2, a3, o2, s3) {
-        var c3, h3, l3, f3, d3, p3, g3, m4, v3, b3, y4, w3, N3, L3, A3 = r3 - t3, x3 = n3 - e3, S3 = i2 - r3, _3 = a3 - n3, P3 = o2 - i2, k3 = s3 - a3;
+        var c3, h3, l3, f3, d3, p3, g3, m3, v3, b3, y3, w3, N3, L3, A3 = r3 - t3, x3 = n3 - e3, S3 = i2 - r3, _3 = a3 - n3, P3 = o2 - i2, k3 = s3 - a3;
         for (h3 = 0; h3 < 41; h3++)
-          v3 = (g3 = (l3 = t3 + (c3 = h3 / 40) * A3) + c3 * ((d3 = r3 + c3 * S3) - l3)) + c3 * (d3 + c3 * (i2 + c3 * P3 - d3) - g3), b3 = (m4 = (f3 = e3 + c3 * x3) + c3 * ((p3 = n3 + c3 * _3) - f3)) + c3 * (p3 + c3 * (a3 + c3 * k3 - p3) - m4), 0 == h3 ? (y4 = v3, w3 = b3, N3 = v3, L3 = b3) : (y4 = Math.min(y4, v3), w3 = Math.min(w3, b3), N3 = Math.max(N3, v3), L3 = Math.max(L3, b3));
-        return new u2(Math.round(y4), Math.round(w3), Math.round(N3 - y4), Math.round(L3 - w3));
+          v3 = (g3 = (l3 = t3 + (c3 = h3 / 40) * A3) + c3 * ((d3 = r3 + c3 * S3) - l3)) + c3 * (d3 + c3 * (i2 + c3 * P3 - d3) - g3), b3 = (m3 = (f3 = e3 + c3 * x3) + c3 * ((p3 = n3 + c3 * _3) - f3)) + c3 * (p3 + c3 * (a3 + c3 * k3 - p3) - m3), 0 == h3 ? (y3 = v3, w3 = b3, N3 = v3, L3 = b3) : (y3 = Math.min(y3, v3), w3 = Math.min(w3, b3), N3 = Math.max(N3, v3), L3 = Math.max(L3, b3));
+        return new u2(Math.round(y3), Math.round(w3), Math.round(N3 - y3), Math.round(L3 - w3));
       }, R2 = function() {
         if (!this.prevLineDash && !this.ctx.lineDash.length && !this.ctx.lineDashOffset)
           return;
@@ -30023,7 +30245,7 @@ var require_jspdf_node_min = __commonJS({
         if (null == t3 && (t3 = this.imgData), 0 === t3.length)
           return new Uint8Array(0);
         function o3(r2, o4, s2, c2) {
-          var u2, h2, l2, f2, d2, p2, g2, m3, v2, b2, y3, w2, N2, L2, A2, x2, S2, _2, P2, k2, F2, I2 = Math.ceil((a3.width - r2) / s2), C2 = Math.ceil((a3.height - o4) / c2), j2 = a3.width == I2 && a3.height == C2;
+          var u2, h2, l2, f2, d2, p2, g2, m2, v2, b2, y2, w2, N2, L2, A2, x2, S2, _2, P2, k2, F2, I2 = Math.ceil((a3.width - r2) / s2), C2 = Math.ceil((a3.height - o4) / c2), j2 = a3.width == I2 && a3.height == C2;
           for (L2 = e3 * I2, w2 = j2 ? n2 : new Uint8Array(L2 * C2), p2 = t3.length, N2 = 0, h2 = 0; N2 < C2 && i3 < p2; ) {
             switch (t3[i3++]) {
               case 0:
@@ -30044,7 +30266,7 @@ var require_jspdf_node_min = __commonJS({
                 break;
               case 4:
                 for (f2 = F2 = 0; F2 < L2; f2 = F2 += 1)
-                  u2 = t3[i3++], l2 = (f2 - f2 % e3) / e3, d2 = f2 < e3 ? 0 : w2[h2 - e3], 0 === N2 ? A2 = x2 = 0 : (A2 = w2[(N2 - 1) * L2 + l2 * e3 + f2 % e3], x2 = l2 && w2[(N2 - 1) * L2 + (l2 - 1) * e3 + f2 % e3]), g2 = d2 + A2 - x2, m3 = Math.abs(g2 - d2), b2 = Math.abs(g2 - A2), y3 = Math.abs(g2 - x2), v2 = m3 <= b2 && m3 <= y3 ? d2 : b2 <= y3 ? A2 : x2, w2[h2++] = (u2 + v2) % 256;
+                  u2 = t3[i3++], l2 = (f2 - f2 % e3) / e3, d2 = f2 < e3 ? 0 : w2[h2 - e3], 0 === N2 ? A2 = x2 = 0 : (A2 = w2[(N2 - 1) * L2 + l2 * e3 + f2 % e3], x2 = l2 && w2[(N2 - 1) * L2 + (l2 - 1) * e3 + f2 % e3]), g2 = d2 + A2 - x2, m2 = Math.abs(g2 - d2), b2 = Math.abs(g2 - A2), y2 = Math.abs(g2 - x2), v2 = m2 <= b2 && m2 <= y2 ? d2 : b2 <= y2 ? A2 : x2, w2[h2++] = (u2 + v2) % 256;
                 break;
               default:
                 throw new Error("Invalid filter algorithm: " + t3[i3 - 1]);
@@ -30165,7 +30387,7 @@ var require_jspdf_node_min = __commonJS({
             }
             break;
           case 44:
-            var m3 = t2[e2++] | t2[e2++] << 8, v2 = t2[e2++] | t2[e2++] << 8, b2 = t2[e2++] | t2[e2++] << 8, y3 = t2[e2++] | t2[e2++] << 8, w2 = t2[e2++], N2 = w2 >> 6 & 1, L2 = 1 << (7 & w2) + 1, A2 = s2, x2 = c2, S2 = false;
+            var m2 = t2[e2++] | t2[e2++] << 8, v2 = t2[e2++] | t2[e2++] << 8, b2 = t2[e2++] | t2[e2++] << 8, y2 = t2[e2++] | t2[e2++] << 8, w2 = t2[e2++], N2 = w2 >> 6 & 1, L2 = 1 << (7 & w2) + 1, A2 = s2, x2 = c2, S2 = false;
             if (w2 >> 7) {
               S2 = true;
               A2 = e2, x2 = L2, e2 += 3 * L2;
@@ -30179,7 +30401,7 @@ var require_jspdf_node_min = __commonJS({
                 break;
               e2 += P2;
             }
-            h2.push({ x: m3, y: v2, width: b2, height: y3, has_local_palette: S2, palette_offset: A2, palette_size: x2, data_offset: _2, data_length: e2 - _2, transparent_index: f2, interlaced: !!N2, delay: l2, disposal: d2 });
+            h2.push({ x: m2, y: v2, width: b2, height: y2, has_local_palette: S2, palette_offset: A2, palette_size: x2, data_offset: _2, data_length: e2 - _2, transparent_index: f2, interlaced: !!N2, delay: l2, disposal: d2 });
             break;
           case 59:
             u2 = false;
@@ -30202,12 +30424,12 @@ var require_jspdf_node_min = __commonJS({
         null === c3 && (c3 = 256);
         var u3 = i3.width, h3 = r2 - u3, l3 = u3, f3 = 4 * (i3.y * r2 + i3.x), d3 = 4 * ((i3.y + i3.height) * r2 + i3.x), p3 = f3, g3 = 4 * h3;
         true === i3.interlaced && (g3 += 4 * r2 * 7);
-        for (var m4 = 8, v3 = 0, b3 = o3.length; v3 < b3; ++v3) {
-          var y4 = o3[v3];
-          if (0 === l3 && (l3 = u3, (p3 += g3) >= d3 && (g3 = 4 * h3 + 4 * r2 * (m4 - 1), p3 = f3 + (u3 + h3) * (m4 << 1), m4 >>= 1)), y4 === c3)
+        for (var m3 = 8, v3 = 0, b3 = o3.length; v3 < b3; ++v3) {
+          var y3 = o3[v3];
+          if (0 === l3 && (l3 = u3, (p3 += g3) >= d3 && (g3 = 4 * h3 + 4 * r2 * (m3 - 1), p3 = f3 + (u3 + h3) * (m3 << 1), m3 >>= 1)), y3 === c3)
             p3 += 4;
           else {
-            var w3 = t2[s3 + 3 * y4], N3 = t2[s3 + 3 * y4 + 1], L3 = t2[s3 + 3 * y4 + 2];
+            var w3 = t2[s3 + 3 * y3], N3 = t2[s3 + 3 * y3 + 1], L3 = t2[s3 + 3 * y3 + 2];
             n3[p3++] = L3, n3[p3++] = N3, n3[p3++] = w3, n3[p3++] = 255;
           }
           --l3;
@@ -30219,12 +30441,12 @@ var require_jspdf_node_min = __commonJS({
         null === c3 && (c3 = 256);
         var u3 = i3.width, h3 = r2 - u3, l3 = u3, f3 = 4 * (i3.y * r2 + i3.x), d3 = 4 * ((i3.y + i3.height) * r2 + i3.x), p3 = f3, g3 = 4 * h3;
         true === i3.interlaced && (g3 += 4 * r2 * 7);
-        for (var m4 = 8, v3 = 0, b3 = o3.length; v3 < b3; ++v3) {
-          var y4 = o3[v3];
-          if (0 === l3 && (l3 = u3, (p3 += g3) >= d3 && (g3 = 4 * h3 + 4 * r2 * (m4 - 1), p3 = f3 + (u3 + h3) * (m4 << 1), m4 >>= 1)), y4 === c3)
+        for (var m3 = 8, v3 = 0, b3 = o3.length; v3 < b3; ++v3) {
+          var y3 = o3[v3];
+          if (0 === l3 && (l3 = u3, (p3 += g3) >= d3 && (g3 = 4 * h3 + 4 * r2 * (m3 - 1), p3 = f3 + (u3 + h3) * (m3 << 1), m3 >>= 1)), y3 === c3)
             p3 += 4;
           else {
-            var w3 = t2[s3 + 3 * y4], N3 = t2[s3 + 3 * y4 + 1], L3 = t2[s3 + 3 * y4 + 2];
+            var w3 = t2[s3 + 3 * y3], N3 = t2[s3 + 3 * y3 + 1], L3 = t2[s3 + 3 * y3 + 2];
             n3[p3++] = w3, n3[p3++] = N3, n3[p3++] = L3, n3[p3++] = 255;
           }
           --l3;
@@ -30232,7 +30454,7 @@ var require_jspdf_node_min = __commonJS({
       };
     }
     function Gt(t2, e2, r2, n2) {
-      for (var i2 = t2[e2++], a2 = 1 << i2, s2 = a2 + 1, c2 = s2 + 1, u2 = i2 + 1, h2 = (1 << u2) - 1, l2 = 0, f2 = 0, d2 = 0, p2 = t2[e2++], g2 = new Int32Array(4096), m3 = null; ; ) {
+      for (var i2 = t2[e2++], a2 = 1 << i2, s2 = a2 + 1, c2 = s2 + 1, u2 = i2 + 1, h2 = (1 << u2) - 1, l2 = 0, f2 = 0, d2 = 0, p2 = t2[e2++], g2 = new Int32Array(4096), m2 = null; ; ) {
         for (; l2 < 16 && 0 !== p2; )
           f2 |= t2[e2++] << l2, l2 += 8, 1 === p2 ? p2 = t2[e2++] : --p2;
         if (l2 < u2)
@@ -30241,23 +30463,23 @@ var require_jspdf_node_min = __commonJS({
         if (f2 >>= u2, l2 -= u2, v2 !== a2) {
           if (v2 === s2)
             break;
-          for (var b2 = v2 < c2 ? v2 : m3, y3 = 0, w2 = b2; w2 > a2; )
-            w2 = g2[w2] >> 8, ++y3;
+          for (var b2 = v2 < c2 ? v2 : m2, y2 = 0, w2 = b2; w2 > a2; )
+            w2 = g2[w2] >> 8, ++y2;
           var N2 = w2;
-          if (d2 + y3 + (b2 !== v2 ? 1 : 0) > n2)
+          if (d2 + y2 + (b2 !== v2 ? 1 : 0) > n2)
             return void o.log("Warning, gif stream longer than expected.");
           r2[d2++] = N2;
-          var L2 = d2 += y3;
-          for (b2 !== v2 && (r2[d2++] = N2), w2 = b2; y3--; )
+          var L2 = d2 += y2;
+          for (b2 !== v2 && (r2[d2++] = N2), w2 = b2; y2--; )
             w2 = g2[w2], r2[--L2] = 255 & w2, w2 >>= 8;
-          null !== m3 && c2 < 4096 && (g2[c2++] = m3 << 8 | N2, c2 >= h2 + 1 && u2 < 12 && (++u2, h2 = h2 << 1 | 1)), m3 = v2;
+          null !== m2 && c2 < 4096 && (g2[c2++] = m2 << 8 | N2, c2 >= h2 + 1 && u2 < 12 && (++u2, h2 = h2 << 1 | 1)), m2 = v2;
         } else
-          c2 = s2 + 1, h2 = (1 << (u2 = i2 + 1)) - 1, m3 = null;
+          c2 = s2 + 1, h2 = (1 << (u2 = i2 + 1)) - 1, m2 = null;
       }
       return d2 !== n2 && o.log("Warning, gif stream shorter than expected."), r2;
     }
     function Yt(t2) {
-      var e2, r2, n2, i2, a2, o2 = Math.floor, s2 = new Array(64), c2 = new Array(64), u2 = new Array(64), h2 = new Array(64), l2 = new Array(65535), f2 = new Array(65535), d2 = new Array(64), p2 = new Array(64), g2 = [], m3 = 0, v2 = 7, b2 = new Array(64), y3 = new Array(64), w2 = new Array(64), N2 = new Array(256), L2 = new Array(2048), A2 = [0, 1, 5, 6, 14, 15, 27, 28, 2, 4, 7, 13, 16, 26, 29, 42, 3, 8, 12, 17, 25, 30, 41, 43, 9, 11, 18, 24, 31, 40, 44, 53, 10, 19, 23, 32, 39, 45, 52, 54, 20, 22, 33, 38, 46, 51, 55, 60, 21, 34, 37, 47, 50, 56, 59, 61, 35, 36, 48, 49, 57, 58, 62, 63], x2 = [0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0], S2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], _2 = [0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 125], P2 = [1, 2, 3, 0, 4, 17, 5, 18, 33, 49, 65, 6, 19, 81, 97, 7, 34, 113, 20, 50, 129, 145, 161, 8, 35, 66, 177, 193, 21, 82, 209, 240, 36, 51, 98, 114, 130, 9, 10, 22, 23, 24, 25, 26, 37, 38, 39, 40, 41, 42, 52, 53, 54, 55, 56, 57, 58, 67, 68, 69, 70, 71, 72, 73, 74, 83, 84, 85, 86, 87, 88, 89, 90, 99, 100, 101, 102, 103, 104, 105, 106, 115, 116, 117, 118, 119, 120, 121, 122, 131, 132, 133, 134, 135, 136, 137, 138, 146, 147, 148, 149, 150, 151, 152, 153, 154, 162, 163, 164, 165, 166, 167, 168, 169, 170, 178, 179, 180, 181, 182, 183, 184, 185, 186, 194, 195, 196, 197, 198, 199, 200, 201, 202, 210, 211, 212, 213, 214, 215, 216, 217, 218, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250], k2 = [0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0], F2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], I2 = [0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 119], C2 = [0, 1, 2, 3, 17, 4, 5, 33, 49, 6, 18, 65, 81, 7, 97, 113, 19, 34, 50, 129, 8, 20, 66, 145, 161, 177, 193, 9, 35, 51, 82, 240, 21, 98, 114, 209, 10, 22, 36, 52, 225, 37, 241, 23, 24, 25, 26, 38, 39, 40, 41, 42, 53, 54, 55, 56, 57, 58, 67, 68, 69, 70, 71, 72, 73, 74, 83, 84, 85, 86, 87, 88, 89, 90, 99, 100, 101, 102, 103, 104, 105, 106, 115, 116, 117, 118, 119, 120, 121, 122, 130, 131, 132, 133, 134, 135, 136, 137, 138, 146, 147, 148, 149, 150, 151, 152, 153, 154, 162, 163, 164, 165, 166, 167, 168, 169, 170, 178, 179, 180, 181, 182, 183, 184, 185, 186, 194, 195, 196, 197, 198, 199, 200, 201, 202, 210, 211, 212, 213, 214, 215, 216, 217, 218, 226, 227, 228, 229, 230, 231, 232, 233, 234, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+      var e2, r2, n2, i2, a2, o2 = Math.floor, s2 = new Array(64), c2 = new Array(64), u2 = new Array(64), h2 = new Array(64), l2 = new Array(65535), f2 = new Array(65535), d2 = new Array(64), p2 = new Array(64), g2 = [], m2 = 0, v2 = 7, b2 = new Array(64), y2 = new Array(64), w2 = new Array(64), N2 = new Array(256), L2 = new Array(2048), A2 = [0, 1, 5, 6, 14, 15, 27, 28, 2, 4, 7, 13, 16, 26, 29, 42, 3, 8, 12, 17, 25, 30, 41, 43, 9, 11, 18, 24, 31, 40, 44, 53, 10, 19, 23, 32, 39, 45, 52, 54, 20, 22, 33, 38, 46, 51, 55, 60, 21, 34, 37, 47, 50, 56, 59, 61, 35, 36, 48, 49, 57, 58, 62, 63], x2 = [0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0], S2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], _2 = [0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 125], P2 = [1, 2, 3, 0, 4, 17, 5, 18, 33, 49, 65, 6, 19, 81, 97, 7, 34, 113, 20, 50, 129, 145, 161, 8, 35, 66, 177, 193, 21, 82, 209, 240, 36, 51, 98, 114, 130, 9, 10, 22, 23, 24, 25, 26, 37, 38, 39, 40, 41, 42, 52, 53, 54, 55, 56, 57, 58, 67, 68, 69, 70, 71, 72, 73, 74, 83, 84, 85, 86, 87, 88, 89, 90, 99, 100, 101, 102, 103, 104, 105, 106, 115, 116, 117, 118, 119, 120, 121, 122, 131, 132, 133, 134, 135, 136, 137, 138, 146, 147, 148, 149, 150, 151, 152, 153, 154, 162, 163, 164, 165, 166, 167, 168, 169, 170, 178, 179, 180, 181, 182, 183, 184, 185, 186, 194, 195, 196, 197, 198, 199, 200, 201, 202, 210, 211, 212, 213, 214, 215, 216, 217, 218, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250], k2 = [0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0], F2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], I2 = [0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 119], C2 = [0, 1, 2, 3, 17, 4, 5, 33, 49, 6, 18, 65, 81, 7, 97, 113, 19, 34, 50, 129, 8, 20, 66, 145, 161, 177, 193, 9, 35, 51, 82, 240, 21, 98, 114, 209, 10, 22, 36, 52, 225, 37, 241, 23, 24, 25, 26, 38, 39, 40, 41, 42, 53, 54, 55, 56, 57, 58, 67, 68, 69, 70, 71, 72, 73, 74, 83, 84, 85, 86, 87, 88, 89, 90, 99, 100, 101, 102, 103, 104, 105, 106, 115, 116, 117, 118, 119, 120, 121, 122, 130, 131, 132, 133, 134, 135, 136, 137, 138, 146, 147, 148, 149, 150, 151, 152, 153, 154, 162, 163, 164, 165, 166, 167, 168, 169, 170, 178, 179, 180, 181, 182, 183, 184, 185, 186, 194, 195, 196, 197, 198, 199, 200, 201, 202, 210, 211, 212, 213, 214, 215, 216, 217, 218, 226, 227, 228, 229, 230, 231, 232, 233, 234, 242, 243, 244, 245, 246, 247, 248, 249, 250];
       function j2(t3, e3) {
         for (var r3 = 0, n3 = 0, i3 = new Array(), a3 = 1; a3 <= 16; a3++) {
           for (var o3 = 1; o3 <= t3[a3]; o3++)
@@ -30268,7 +30490,7 @@ var require_jspdf_node_min = __commonJS({
       }
       function O2(t3) {
         for (var e3 = t3[0], r3 = t3[1] - 1; r3 >= 0; )
-          e3 & 1 << r3 && (m3 |= 1 << v2), r3--, --v2 < 0 && (255 == m3 ? (B2(255), B2(0)) : B2(m3), v2 = 7, m3 = 0);
+          e3 & 1 << r3 && (m2 |= 1 << v2), r3--, --v2 < 0 && (255 == m2 ? (B2(255), B2(0)) : B2(m2), v2 = 7, m2 = 0);
       }
       function B2(t3) {
         g2.push(t3);
@@ -30281,11 +30503,11 @@ var require_jspdf_node_min = __commonJS({
           var r4, n4, i4, a4, o4, s4, c4, u4, h4, l3, f3 = 0;
           for (h4 = 0; h4 < 8; ++h4) {
             r4 = t4[f3], n4 = t4[f3 + 1], i4 = t4[f3 + 2], a4 = t4[f3 + 3], o4 = t4[f3 + 4], s4 = t4[f3 + 5], c4 = t4[f3 + 6];
-            var p3 = r4 + (u4 = t4[f3 + 7]), g4 = r4 - u4, m5 = n4 + c4, v4 = n4 - c4, b4 = i4 + s4, y5 = i4 - s4, w4 = a4 + o4, N3 = a4 - o4, L3 = p3 + w4, A3 = p3 - w4, x3 = m5 + b4, S3 = m5 - b4;
+            var p3 = r4 + (u4 = t4[f3 + 7]), g4 = r4 - u4, m4 = n4 + c4, v4 = n4 - c4, b4 = i4 + s4, y4 = i4 - s4, w4 = a4 + o4, N3 = a4 - o4, L3 = p3 + w4, A3 = p3 - w4, x3 = m4 + b4, S3 = m4 - b4;
             t4[f3] = L3 + x3, t4[f3 + 4] = L3 - x3;
             var _3 = 0.707106781 * (S3 + A3);
             t4[f3 + 2] = A3 + _3, t4[f3 + 6] = A3 - _3;
-            var P3 = 0.382683433 * ((L3 = N3 + y5) - (S3 = v4 + g4)), k3 = 0.5411961 * L3 + P3, F3 = 1.306562965 * S3 + P3, I3 = 0.707106781 * (x3 = y5 + v4), C3 = g4 + I3, j3 = g4 - I3;
+            var P3 = 0.382683433 * ((L3 = N3 + y4) - (S3 = v4 + g4)), k3 = 0.5411961 * L3 + P3, F3 = 1.306562965 * S3 + P3, I3 = 0.707106781 * (x3 = y4 + v4), C3 = g4 + I3, j3 = g4 - I3;
             t4[f3 + 5] = j3 + k3, t4[f3 + 3] = j3 - k3, t4[f3 + 1] = C3 + F3, t4[f3 + 7] = C3 - F3, f3 += 8;
           }
           for (f3 = 0, h4 = 0; h4 < 8; ++h4) {
@@ -30308,17 +30530,17 @@ var require_jspdf_node_min = __commonJS({
           g3--;
         if (0 == g3)
           return O2(o3), r3;
-        for (var m4, v3 = 1; v3 <= g3; ) {
+        for (var m3, v3 = 1; v3 <= g3; ) {
           for (var b3 = v3; 0 == p2[v3] && v3 <= g3; )
             ++v3;
-          var y4 = v3 - b3;
-          if (y4 >= 16) {
-            m4 = y4 >> 4;
-            for (var w3 = 1; w3 <= m4; ++w3)
+          var y3 = v3 - b3;
+          if (y3 >= 16) {
+            m3 = y3 >> 4;
+            for (var w3 = 1; w3 <= m3; ++w3)
               O2(s3);
-            y4 &= 15;
+            y3 &= 15;
           }
-          a3 = 32767 + p2[v3], O2(i3[(y4 << 4) + f2[a3]]), O2(l2[a3]), v3++;
+          a3 = 32767 + p2[v3], O2(i3[(y3 << 4) + f2[a3]]), O2(l2[a3]), v3++;
         }
         return 63 != g3 && O2(o3), r3;
       }
@@ -30338,7 +30560,7 @@ var require_jspdf_node_min = __commonJS({
         }(t3 < 50 ? Math.floor(5e3 / t3) : Math.floor(200 - 2 * t3)), a2 = t3);
       }
       this.encode = function(t3, a3) {
-        a3 && E2(a3), g2 = new Array(), m3 = 0, v2 = 7, q2(65496), q2(65504), q2(16), B2(74), B2(70), B2(73), B2(70), B2(0), B2(1), B2(1), B2(0), q2(1), q2(1), B2(0), B2(0), function() {
+        a3 && E2(a3), g2 = new Array(), m2 = 0, v2 = 7, q2(65496), q2(65504), q2(16), B2(74), B2(70), B2(73), B2(70), B2(0), B2(1), B2(1), B2(0), q2(1), q2(1), B2(0), B2(0), function() {
           q2(65499), q2(132), B2(0);
           for (var t4 = 0; t4 < 64; t4++)
             B2(s2[t4]);
@@ -30370,12 +30592,12 @@ var require_jspdf_node_min = __commonJS({
             B2(C2[s3]);
         }(), q2(65498), q2(12), B2(3), B2(1), B2(0), B2(2), B2(17), B2(3), B2(17), B2(0), B2(63), B2(0);
         var o3 = 0, l3 = 0, f3 = 0;
-        m3 = 0, v2 = 7, this.encode.displayName = "_encode_";
+        m2 = 0, v2 = 7, this.encode.displayName = "_encode_";
         for (var d3, p3, N3, A3, j3, D2, R2, T2, z2, U2 = t3.data, H2 = t3.width, W2 = t3.height, V2 = 4 * H2, G2 = 0; G2 < W2; ) {
           for (d3 = 0; d3 < V2; ) {
             for (j3 = V2 * G2 + d3, R2 = -1, T2 = 0, z2 = 0; z2 < 64; z2++)
-              D2 = j3 + (T2 = z2 >> 3) * V2 + (R2 = 4 * (7 & z2)), G2 + T2 >= W2 && (D2 -= V2 * (G2 + 1 + T2 - W2)), d3 + R2 >= V2 && (D2 -= d3 + R2 - V2 + 4), p3 = U2[D2++], N3 = U2[D2++], A3 = U2[D2++], b2[z2] = (L2[p3] + L2[N3 + 256 >> 0] + L2[A3 + 512 >> 0] >> 16) - 128, y3[z2] = (L2[p3 + 768 >> 0] + L2[N3 + 1024 >> 0] + L2[A3 + 1280 >> 0] >> 16) - 128, w2[z2] = (L2[p3 + 1280 >> 0] + L2[N3 + 1536 >> 0] + L2[A3 + 1792 >> 0] >> 16) - 128;
-            o3 = M2(b2, u2, o3, e2, n2), l3 = M2(y3, h2, l3, r2, i2), f3 = M2(w2, h2, f3, r2, i2), d3 += 32;
+              D2 = j3 + (T2 = z2 >> 3) * V2 + (R2 = 4 * (7 & z2)), G2 + T2 >= W2 && (D2 -= V2 * (G2 + 1 + T2 - W2)), d3 + R2 >= V2 && (D2 -= d3 + R2 - V2 + 4), p3 = U2[D2++], N3 = U2[D2++], A3 = U2[D2++], b2[z2] = (L2[p3] + L2[N3 + 256 >> 0] + L2[A3 + 512 >> 0] >> 16) - 128, y2[z2] = (L2[p3 + 768 >> 0] + L2[N3 + 1024 >> 0] + L2[A3 + 1280 >> 0] >> 16) - 128, w2[z2] = (L2[p3 + 1280 >> 0] + L2[N3 + 1536 >> 0] + L2[A3 + 1792 >> 0] >> 16) - 128;
+            o3 = M2(b2, u2, o3, e2, n2), l3 = M2(y2, h2, l3, r2, i2), f3 = M2(w2, h2, f3, r2, i2), d3 += 32;
           }
           G2 += 8;
         }
@@ -30458,7 +30680,7 @@ var require_jspdf_node_min = __commonJS({
           else if (null == (s3 = a2(o3)))
             return 0;
           return function(t5, r4, n4, i4, o4, s4) {
-            var h4, f4, d4 = r4, p4 = 1 << n4, g4 = a2(16), m5 = a2(16);
+            var h4, f4, d4 = r4, p4 = 1 << n4, g4 = a2(16), m4 = a2(16);
             for (e2(0 != o4), e2(null != i4), e2(null != t5), e2(0 < n4), f4 = 0; f4 < o4; ++f4) {
               if (15 < i4[f4])
                 return 0;
@@ -30466,16 +30688,16 @@ var require_jspdf_node_min = __commonJS({
             }
             if (g4[0] == o4)
               return 0;
-            for (m5[1] = 0, h4 = 1; 15 > h4; ++h4) {
+            for (m4[1] = 0, h4 = 1; 15 > h4; ++h4) {
               if (g4[h4] > 1 << h4)
                 return 0;
-              m5[h4 + 1] = m5[h4] + g4[h4];
+              m4[h4 + 1] = m4[h4] + g4[h4];
             }
             for (f4 = 0; f4 < o4; ++f4)
-              h4 = i4[f4], 0 < i4[f4] && (s4[m5[h4]++] = f4);
-            if (1 == m5[15])
+              h4 = i4[f4], 0 < i4[f4] && (s4[m4[h4]++] = f4);
+            if (1 == m4[15])
               return (i4 = new l3()).g = 0, i4.value = s4[0], u3(t5, d4, 1, p4, i4), p4;
-            var v4, b4 = -1, y5 = p4 - 1, w4 = 0, N4 = 1, L4 = 1, A4 = 1 << n4;
+            var v4, b4 = -1, y4 = p4 - 1, w4 = 0, N4 = 1, L4 = 1, A4 = 1 << n4;
             for (f4 = 0, h4 = 1, o4 = 2; h4 <= n4; ++h4, o4 <<= 1) {
               if (N4 += L4 <<= 1, 0 > (L4 -= g4[h4]))
                 return 0;
@@ -30486,15 +30708,15 @@ var require_jspdf_node_min = __commonJS({
               if (N4 += L4 <<= 1, 0 > (L4 -= g4[h4]))
                 return 0;
               for (; 0 < g4[h4]; --g4[h4]) {
-                if (i4 = new l3(), (w4 & y5) != b4) {
+                if (i4 = new l3(), (w4 & y4) != b4) {
                   for (d4 += A4, v4 = 1 << (b4 = h4) - n4; 15 > b4 && !(0 >= (v4 -= g4[b4])); )
                     ++b4, v4 <<= 1;
-                  p4 += A4 = 1 << (v4 = b4 - n4), t5[r4 + (b4 = w4 & y5)].g = v4 + n4, t5[r4 + b4].value = d4 - r4 - b4;
+                  p4 += A4 = 1 << (v4 = b4 - n4), t5[r4 + (b4 = w4 & y4)].g = v4 + n4, t5[r4 + b4].value = d4 - r4 - b4;
                 }
                 i4.g = h4 - n4, i4.value = s4[f4++], u3(t5, d4 + (w4 >> n4), o4, A4, i4), w4 = c3(w4, h4);
               }
             }
-            return N4 != 2 * m5[15] - 1 ? 0 : p4;
+            return N4 != 2 * m4[15] - 1 ? 0 : p4;
           }(t4, r3, n3, i3, o3, s3);
         }
         function l3() {
@@ -30514,7 +30736,7 @@ var require_jspdf_node_min = __commonJS({
             r3 |= k2(t4, 128) << e3;
           return r3;
         }
-        function m4(t4, e3) {
+        function m3(t4, e3) {
           var r3 = g3(t4, e3);
           return P2(t4) ? -r3 : r3;
         }
@@ -30529,7 +30751,7 @@ var require_jspdf_node_min = __commonJS({
             t4.Ra >>>= 8, t4.Ra += t4.oa[t4.pa + t4.bb] << zr - 8 >>> 0, ++t4.bb, t4.u -= 8;
           A3(t4) && (t4.h = 1, t4.u = 0);
         }
-        function y4(t4, r3) {
+        function y3(t4, r3) {
           if (e2(0 <= r3), !t4.h && r3 <= Tr) {
             var n3 = L3(t4) & Rr[r3];
             return t4.u += r3, b3(t4), n3;
@@ -30656,9 +30878,9 @@ var require_jspdf_node_min = __commonJS({
             var l4 = 8 >> e4.b, f4 = e4.Ea, d4 = e4.K[0], p4 = e4.w;
             if (8 > l4)
               for (e4 = (1 << e4.b) - 1, p4 = (1 << l4) - 1; r4 < o3; ++r4) {
-                var g4, m5 = 0;
+                var g4, m4 = 0;
                 for (g4 = 0; g4 < f4; ++g4)
-                  g4 & e4 || (m5 = i3(s3[c4++])), u4[h4++] = a3(d4[m5 & p4]), m5 >>= l4;
+                  g4 & e4 || (m4 = i3(s3[c4++])), u4[h4++] = a3(d4[m4 & p4]), m4 >>= l4;
               }
             else
               t3["VP8LMapColor" + n3](s3, c4, d4, p4, u4, h4, r4, o3, f4);
@@ -30726,10 +30948,10 @@ var require_jspdf_node_min = __commonJS({
           return alert("todo:WebPSamplerProcessPlane"), t4.T;
         }
         function ht2(t4, e3) {
-          var r3 = t4.T, i3 = e3.ba.f.RGBA, a3 = i3.eb, o3 = i3.fb + t4.ka * i3.A, s3 = vi[e3.ba.S], c4 = t4.y, u4 = t4.O, h4 = t4.f, l4 = t4.N, f4 = t4.ea, d4 = t4.W, p4 = e3.cc, g4 = e3.dc, m5 = e3.Mc, v4 = e3.Nc, b4 = t4.ka, y5 = t4.ka + t4.T, w4 = t4.U, N4 = w4 + 1 >> 1;
-          for (0 == b4 ? s3(c4, u4, null, null, h4, l4, f4, d4, h4, l4, f4, d4, a3, o3, null, null, w4) : (s3(e3.ec, e3.fc, c4, u4, p4, g4, m5, v4, h4, l4, f4, d4, a3, o3 - i3.A, a3, o3, w4), ++r3); b4 + 2 < y5; b4 += 2)
-            p4 = h4, g4 = l4, m5 = f4, v4 = d4, l4 += t4.Rc, d4 += t4.Rc, o3 += 2 * i3.A, s3(c4, (u4 += 2 * t4.fa) - t4.fa, c4, u4, p4, g4, m5, v4, h4, l4, f4, d4, a3, o3 - i3.A, a3, o3, w4);
-          return u4 += t4.fa, t4.j + y5 < t4.o ? (n2(e3.ec, e3.fc, c4, u4, w4), n2(e3.cc, e3.dc, h4, l4, N4), n2(e3.Mc, e3.Nc, f4, d4, N4), r3--) : 1 & y5 || s3(c4, u4, null, null, h4, l4, f4, d4, h4, l4, f4, d4, a3, o3 + i3.A, null, null, w4), r3;
+          var r3 = t4.T, i3 = e3.ba.f.RGBA, a3 = i3.eb, o3 = i3.fb + t4.ka * i3.A, s3 = vi[e3.ba.S], c4 = t4.y, u4 = t4.O, h4 = t4.f, l4 = t4.N, f4 = t4.ea, d4 = t4.W, p4 = e3.cc, g4 = e3.dc, m4 = e3.Mc, v4 = e3.Nc, b4 = t4.ka, y4 = t4.ka + t4.T, w4 = t4.U, N4 = w4 + 1 >> 1;
+          for (0 == b4 ? s3(c4, u4, null, null, h4, l4, f4, d4, h4, l4, f4, d4, a3, o3, null, null, w4) : (s3(e3.ec, e3.fc, c4, u4, p4, g4, m4, v4, h4, l4, f4, d4, a3, o3 - i3.A, a3, o3, w4), ++r3); b4 + 2 < y4; b4 += 2)
+            p4 = h4, g4 = l4, m4 = f4, v4 = d4, l4 += t4.Rc, d4 += t4.Rc, o3 += 2 * i3.A, s3(c4, (u4 += 2 * t4.fa) - t4.fa, c4, u4, p4, g4, m4, v4, h4, l4, f4, d4, a3, o3 - i3.A, a3, o3, w4);
+          return u4 += t4.fa, t4.j + y4 < t4.o ? (n2(e3.ec, e3.fc, c4, u4, w4), n2(e3.cc, e3.dc, h4, l4, N4), n2(e3.Mc, e3.Nc, f4, d4, N4), r3--) : 1 & y4 || s3(c4, u4, null, null, h4, l4, f4, d4, h4, l4, f4, d4, a3, o3 + i3.A, null, null, w4), r3;
         }
         function lt2(t4, r3, n3) {
           var i3 = t4.F, a3 = [t4.J];
@@ -30778,13 +31000,13 @@ var require_jspdf_node_min = __commonJS({
           t4.ma.memory = null;
         }
         function gt2(t4, e3, r3, n3) {
-          return 47 != y4(t4, 8) ? 0 : (e3[0] = y4(t4, 14) + 1, r3[0] = y4(t4, 14) + 1, n3[0] = y4(t4, 1), 0 != y4(t4, 3) ? 0 : !t4.h);
+          return 47 != y3(t4, 8) ? 0 : (e3[0] = y3(t4, 14) + 1, r3[0] = y3(t4, 14) + 1, n3[0] = y3(t4, 1), 0 != y3(t4, 3) ? 0 : !t4.h);
         }
         function mt2(t4, e3) {
           if (4 > t4)
             return t4 + 1;
           var r3 = t4 - 2 >> 1;
-          return (2 + (1 & t4) << r3) + y4(e3, r3) + 1;
+          return (2 + (1 & t4) << r3) + y3(e3, r3) + 1;
         }
         function vt2(t4, e3) {
           return 120 < e3 ? e3 - 120 : 1 <= (r3 = ((r3 = $n[e3 - 1]) >> 4) * t4 + (8 - (15 & r3))) ? r3 : 1;
@@ -30806,38 +31028,38 @@ var require_jspdf_node_min = __commonJS({
           r3 = c4 + r3;
           var u4 = i3, h4 = a3;
           for (a3 = t4.Ta, i3 = t4.Ua; 0 < o3--; ) {
-            var l4 = t4.gc[o3], f4 = c4, d4 = r3, p4 = u4, g4 = h4, m5 = (h4 = a3, u4 = i3, l4.Ea);
+            var l4 = t4.gc[o3], f4 = c4, d4 = r3, p4 = u4, g4 = h4, m4 = (h4 = a3, u4 = i3, l4.Ea);
             switch (e2(f4 < d4), e2(d4 <= l4.nc), l4.hc) {
               case 2:
-                Gr(p4, g4, (d4 - f4) * m5, h4, u4);
+                Gr(p4, g4, (d4 - f4) * m4, h4, u4);
                 break;
               case 0:
-                var v4 = f4, b4 = d4, y5 = h4, w4 = u4, N4 = (_3 = l4).Ea;
-                0 == v4 && (Wr(p4, g4, null, null, 1, y5, w4), V2(p4, g4 + 1, 0, 0, N4 - 1, y5, w4 + 1), g4 += N4, w4 += N4, ++v4);
+                var v4 = f4, b4 = d4, y4 = h4, w4 = u4, N4 = (_3 = l4).Ea;
+                0 == v4 && (Wr(p4, g4, null, null, 1, y4, w4), V2(p4, g4 + 1, 0, 0, N4 - 1, y4, w4 + 1), g4 += N4, w4 += N4, ++v4);
                 for (var L4 = 1 << _3.b, A4 = L4 - 1, x3 = E2(N4, _3.b), S3 = _3.K, _3 = _3.w + (v4 >> _3.b) * x3; v4 < b4; ) {
                   var P3 = S3, k3 = _3, F3 = 1;
-                  for (Vr(p4, g4, y5, w4 - N4, 1, y5, w4); F3 < N4; ) {
+                  for (Vr(p4, g4, y4, w4 - N4, 1, y4, w4); F3 < N4; ) {
                     var I3 = (F3 & ~A4) + L4;
-                    I3 > N4 && (I3 = N4), (0, Zr[P3[k3++] >> 8 & 15])(p4, g4 + +F3, y5, w4 + F3 - N4, I3 - F3, y5, w4 + F3), F3 = I3;
+                    I3 > N4 && (I3 = N4), (0, Zr[P3[k3++] >> 8 & 15])(p4, g4 + +F3, y4, w4 + F3 - N4, I3 - F3, y4, w4 + F3), F3 = I3;
                   }
                   g4 += N4, w4 += N4, ++v4 & A4 || (_3 += x3);
                 }
-                d4 != l4.nc && n2(h4, u4 - m5, h4, u4 + (d4 - f4 - 1) * m5, m5);
+                d4 != l4.nc && n2(h4, u4 - m4, h4, u4 + (d4 - f4 - 1) * m4, m4);
                 break;
               case 1:
-                for (m5 = p4, b4 = g4, N4 = (p4 = l4.Ea) - (w4 = p4 & ~(y5 = (g4 = 1 << l4.b) - 1)), v4 = E2(p4, l4.b), L4 = l4.K, l4 = l4.w + (f4 >> l4.b) * v4; f4 < d4; ) {
+                for (m4 = p4, b4 = g4, N4 = (p4 = l4.Ea) - (w4 = p4 & ~(y4 = (g4 = 1 << l4.b) - 1)), v4 = E2(p4, l4.b), L4 = l4.K, l4 = l4.w + (f4 >> l4.b) * v4; f4 < d4; ) {
                   for (A4 = L4, x3 = l4, S3 = new T2(), _3 = b4 + w4, P3 = b4 + p4; b4 < _3; )
-                    Y2(A4[x3++], S3), $r(S3, m5, b4, g4, h4, u4), b4 += g4, u4 += g4;
-                  b4 < P3 && (Y2(A4[x3++], S3), $r(S3, m5, b4, N4, h4, u4), b4 += N4, u4 += N4), ++f4 & y5 || (l4 += v4);
+                    Y2(A4[x3++], S3), $r(S3, m4, b4, g4, h4, u4), b4 += g4, u4 += g4;
+                  b4 < P3 && (Y2(A4[x3++], S3), $r(S3, m4, b4, N4, h4, u4), b4 += N4, u4 += N4), ++f4 & y4 || (l4 += v4);
                 }
                 break;
               case 3:
                 if (p4 == h4 && g4 == u4 && 0 < l4.b) {
-                  for (b4 = h4, p4 = m5 = u4 + (d4 - f4) * m5 - (w4 = (d4 - f4) * E2(l4.Ea, l4.b)), g4 = h4, y5 = u4, v4 = [], w4 = (N4 = w4) - 1; 0 <= w4; --w4)
-                    v4[w4] = g4[y5 + w4];
+                  for (b4 = h4, p4 = m4 = u4 + (d4 - f4) * m4 - (w4 = (d4 - f4) * E2(l4.Ea, l4.b)), g4 = h4, y4 = u4, v4 = [], w4 = (N4 = w4) - 1; 0 <= w4; --w4)
+                    v4[w4] = g4[y4 + w4];
                   for (w4 = N4 - 1; 0 <= w4; --w4)
                     b4[p4 + w4] = v4[w4];
-                  Yr(l4, f4, d4, h4, m5, h4, u4);
+                  Yr(l4, f4, d4, h4, m4, h4, u4);
                 } else
                   Yr(l4, f4, d4, p4, g4, h4, u4);
             }
@@ -30858,40 +31080,40 @@ var require_jspdf_node_min = __commonJS({
               if (c4 = c4[0], 11 > (n3 = t4.ca).S) {
                 var l4 = n3.f.RGBA, f4 = (i3 = n3.S, a3 = o3.U, o3 = o3.T, h4 = l4.eb, l4.A), d4 = o3;
                 for (l4 = l4.fb + t4.Ma * l4.A; 0 < d4--; ) {
-                  var p4 = s3, g4 = c4, m5 = a3, v4 = h4, b4 = l4;
+                  var p4 = s3, g4 = c4, m4 = a3, v4 = h4, b4 = l4;
                   switch (i3) {
                     case Mn:
-                      Qr(p4, g4, m5, v4, b4);
+                      Qr(p4, g4, m4, v4, b4);
                       break;
                     case En:
-                      tn(p4, g4, m5, v4, b4);
+                      tn(p4, g4, m4, v4, b4);
                       break;
                     case Hn:
-                      tn(p4, g4, m5, v4, b4), An(v4, b4, 0, m5, 1, 0);
+                      tn(p4, g4, m4, v4, b4), An(v4, b4, 0, m4, 1, 0);
                       break;
                     case Dn:
-                      nn(p4, g4, m5, v4, b4);
+                      nn(p4, g4, m4, v4, b4);
                       break;
                     case Rn:
-                      et2(p4, g4, m5, v4, b4, 1);
+                      et2(p4, g4, m4, v4, b4, 1);
                       break;
                     case Wn:
-                      et2(p4, g4, m5, v4, b4, 1), An(v4, b4, 0, m5, 1, 0);
+                      et2(p4, g4, m4, v4, b4, 1), An(v4, b4, 0, m4, 1, 0);
                       break;
                     case Tn:
-                      et2(p4, g4, m5, v4, b4, 0);
+                      et2(p4, g4, m4, v4, b4, 0);
                       break;
                     case Vn:
-                      et2(p4, g4, m5, v4, b4, 0), An(v4, b4, 1, m5, 1, 0);
+                      et2(p4, g4, m4, v4, b4, 0), An(v4, b4, 1, m4, 1, 0);
                       break;
                     case zn:
-                      en(p4, g4, m5, v4, b4);
+                      en(p4, g4, m4, v4, b4);
                       break;
                     case Gn:
-                      en(p4, g4, m5, v4, b4), xn(v4, b4, m5, 1, 0);
+                      en(p4, g4, m4, v4, b4), xn(v4, b4, m4, 1, 0);
                       break;
                     case Un:
-                      rn(p4, g4, m5, v4, b4);
+                      rn(p4, g4, m4, v4, b4);
                       break;
                     default:
                       e2(0);
@@ -30937,32 +31159,32 @@ var require_jspdf_node_min = __commonJS({
         function _t2(t4, r3, n3, i3, a3, o3, s3) {
           var c4 = t4.$ / i3, u4 = t4.$ % i3, h4 = t4.m, l4 = t4.s, f4 = n3 + t4.$, d4 = f4;
           a3 = n3 + i3 * a3;
-          var p4 = n3 + i3 * o3, g4 = 280 + l4.ua, m5 = t4.Pb ? c4 : 16777216, v4 = 0 < l4.ua ? l4.Wa : null, b4 = l4.wc, y5 = f4 < p4 ? wt2(l4, u4, c4) : null;
+          var p4 = n3 + i3 * o3, g4 = 280 + l4.ua, m4 = t4.Pb ? c4 : 16777216, v4 = 0 < l4.ua ? l4.Wa : null, b4 = l4.wc, y4 = f4 < p4 ? wt2(l4, u4, c4) : null;
           e2(t4.C < o3), e2(p4 <= a3);
           var w4 = false;
           t:
             for (; ; ) {
               for (; w4 || f4 < p4; ) {
                 var N4 = 0;
-                if (c4 >= m5) {
+                if (c4 >= m4) {
                   var _3 = f4 - n3;
-                  e2((m5 = t4).Pb), m5.wd = m5.m, m5.xd = _3, 0 < m5.s.ua && B2(m5.s.Wa, m5.s.vb), m5 = c4 + ti;
+                  e2((m4 = t4).Pb), m4.wd = m4.m, m4.xd = _3, 0 < m4.s.ua && B2(m4.s.Wa, m4.s.vb), m4 = c4 + ti;
                 }
-                if (u4 & b4 || (y5 = wt2(l4, u4, c4)), e2(null != y5), y5.Qb && (r3[f4] = y5.qb, w4 = true), !w4)
-                  if (S2(h4), y5.jc) {
+                if (u4 & b4 || (y4 = wt2(l4, u4, c4)), e2(null != y4), y4.Qb && (r3[f4] = y4.qb, w4 = true), !w4)
+                  if (S2(h4), y4.jc) {
                     N4 = h4, _3 = r3;
-                    var P3 = f4, k3 = y5.pd[L3(N4) & Dr - 1];
-                    e2(y5.jc), 256 > k3.g ? (x2(N4, N4.u + k3.g), _3[P3] = k3.value, N4 = 0) : (x2(N4, N4.u + k3.g - 256), e2(256 <= k3.value), N4 = k3.value), 0 == N4 && (w4 = true);
+                    var P3 = f4, k3 = y4.pd[L3(N4) & Dr - 1];
+                    e2(y4.jc), 256 > k3.g ? (x2(N4, N4.u + k3.g), _3[P3] = k3.value, N4 = 0) : (x2(N4, N4.u + k3.g - 256), e2(256 <= k3.value), N4 = k3.value), 0 == N4 && (w4 = true);
                   } else
-                    N4 = bt2(y5.G[0], y5.H[0], h4);
+                    N4 = bt2(y4.G[0], y4.H[0], h4);
                 if (h4.h)
                   break;
                 if (w4 || 256 > N4) {
                   if (!w4)
-                    if (y5.nd)
-                      r3[f4] = (y5.qb | N4 << 8) >>> 0;
+                    if (y4.nd)
+                      r3[f4] = (y4.qb | N4 << 8) >>> 0;
                     else {
-                      if (S2(h4), w4 = bt2(y5.G[1], y5.H[1], h4), S2(h4), _3 = bt2(y5.G[2], y5.H[2], h4), P3 = bt2(y5.G[3], y5.H[3], h4), h4.h)
+                      if (S2(h4), w4 = bt2(y4.G[1], y4.H[1], h4), S2(h4), _3 = bt2(y4.G[2], y4.H[2], h4), P3 = bt2(y4.G[3], y4.H[3], h4), h4.h)
                         break;
                       r3[f4] = (P3 << 24 | w4 << 16 | N4 << 8 | _3) >>> 0;
                     }
@@ -30970,7 +31192,7 @@ var require_jspdf_node_min = __commonJS({
                     for (; d4 < f4; )
                       N4 = r3[d4++], v4.X[(506832829 * N4 & 4294967295) >>> v4.Mb] = N4;
                 } else if (280 > N4) {
-                  if (N4 = mt2(N4 - 256, h4), _3 = bt2(y5.G[4], y5.H[4], h4), S2(h4), _3 = vt2(i3, _3 = mt2(_3, h4)), h4.h)
+                  if (N4 = mt2(N4 - 256, h4), _3 = bt2(y4.G[4], y4.H[4], h4), S2(h4), _3 = vt2(i3, _3 = mt2(_3, h4)), h4.h)
                     break;
                   if (f4 - n3 < _3 || a3 - f4 < N4)
                     break t;
@@ -30978,7 +31200,7 @@ var require_jspdf_node_min = __commonJS({
                     r3[f4 + P3] = r3[f4 + P3 - _3];
                   for (f4 += N4, u4 += N4; u4 >= i3; )
                     u4 -= i3, ++c4, null != s3 && c4 <= o3 && !(c4 % 16) && s3(t4, c4);
-                  if (e2(f4 <= a3), u4 & b4 && (y5 = wt2(l4, u4, c4)), null != v4)
+                  if (e2(f4 <= a3), u4 & b4 && (y4 = wt2(l4, u4, c4)), null != v4)
                     for (; d4 < f4; )
                       N4 = r3[d4++], v4.X[(506832829 * N4 & 4294967295) >>> v4.Mb] = N4;
                 } else {
@@ -31011,22 +31233,22 @@ var require_jspdf_node_min = __commonJS({
           return null == e3 ? null : (e3.a = 0, e3.xb = gi, rt2("Predictor", "VP8LPredictors"), rt2("Predictor", "VP8LPredictors_C"), rt2("PredictorAdd", "VP8LPredictorsAdd"), rt2("PredictorAdd", "VP8LPredictorsAdd_C"), Gr = G2, $r = J2, Qr = K2, tn = Z2, en = $2, rn = Q2, nn = tt2, t3.VP8LMapColor32b = Jr, t3.VP8LMapColor8b = Kr, e3);
         }
         function Ft2(t4, r3, n3, s3, c4) {
-          var u4 = 1, f4 = [t4], p4 = [r3], g4 = s3.m, m5 = s3.s, v4 = null, b4 = 0;
+          var u4 = 1, f4 = [t4], p4 = [r3], g4 = s3.m, m4 = s3.s, v4 = null, b4 = 0;
           t:
             for (; ; ) {
               if (n3)
-                for (; u4 && y4(g4, 1); ) {
-                  var w4 = f4, N4 = p4, A4 = s3, _3 = 1, P3 = A4.m, k3 = A4.gc[A4.ab], F3 = y4(P3, 2);
+                for (; u4 && y3(g4, 1); ) {
+                  var w4 = f4, N4 = p4, A4 = s3, _3 = 1, P3 = A4.m, k3 = A4.gc[A4.ab], F3 = y3(P3, 2);
                   if (A4.Oc & 1 << F3)
                     u4 = 0;
                   else {
                     switch (A4.Oc |= 1 << F3, k3.hc = F3, k3.Ea = w4[0], k3.nc = N4[0], k3.K = [null], ++A4.ab, e2(4 >= A4.ab), F3) {
                       case 0:
                       case 1:
-                        k3.b = y4(P3, 3) + 2, _3 = Ft2(E2(k3.Ea, k3.b), E2(k3.nc, k3.b), 0, A4, k3.K), k3.K = k3.K[0];
+                        k3.b = y3(P3, 3) + 2, _3 = Ft2(E2(k3.Ea, k3.b), E2(k3.nc, k3.b), 0, A4, k3.K), k3.K = k3.K[0];
                         break;
                       case 3:
-                        var I3, C3 = y4(P3, 8) + 1, j3 = 16 < C3 ? 0 : 4 < C3 ? 1 : 2 < C3 ? 2 : 3;
+                        var I3, C3 = y3(P3, 8) + 1, j3 = 16 < C3 ? 0 : 4 < C3 ? 1 : 2 < C3 ? 2 : 3;
                         if (w4[0] = E2(k3.Ea, j3), k3.b = j3, I3 = _3 = Ft2(C3, 1, 0, A4, k3.K)) {
                           var B3, q3 = C3, M3 = k3, R3 = 1 << (8 >> M3.b), T3 = a2(R3);
                           if (null == T3)
@@ -31050,7 +31272,7 @@ var require_jspdf_node_min = __commonJS({
                     u4 = _3;
                   }
                 }
-              if (f4 = f4[0], p4 = p4[0], u4 && y4(g4, 1) && !(u4 = 1 <= (b4 = y4(g4, 4)) && 11 >= b4)) {
+              if (f4 = f4[0], p4 = p4[0], u4 && y3(g4, 1) && !(u4 = 1 <= (b4 = y3(g4, 4)) && 11 >= b4)) {
                 s3.a = 3;
                 break t;
               }
@@ -31060,8 +31282,8 @@ var require_jspdf_node_min = __commonJS({
                   var W3, V3, G3, Y3 = s3, J3 = f4, X3 = p4, K3 = b4, Z3 = n3, $3 = Y3.m, Q3 = Y3.s, tt3 = [null], et3 = 1, rt3 = 0, nt3 = Qn[K3];
                   r:
                     for (; ; ) {
-                      if (Z3 && y4($3, 1)) {
-                        var it3 = y4($3, 3) + 2, at3 = E2(J3, it3), ot3 = E2(X3, it3), st3 = at3 * ot3;
+                      if (Z3 && y3($3, 1)) {
+                        var it3 = y3($3, 3) + 2, at3 = E2(J3, it3), ot3 = E2(X3, it3), st3 = at3 * ot3;
                         if (!Ft2(at3, ot3, 0, Y3, tt3))
                           break r;
                         for (tt3 = tt3[0], Q3.xc = it3, W3 = 0; W3 < st3; ++W3) {
@@ -31091,26 +31313,26 @@ var require_jspdf_node_min = __commonJS({
                         for (V3 = 0; 5 > V3; ++V3) {
                           ut3 = Xn[V3], vt3[V3] = gt3, bt3[V3] = G3, !V3 && 0 < K3 && (ut3 += 1 << K3);
                           n: {
-                            var At3, xt3 = ut3, St3 = Y3, kt3 = pt3, It3 = gt3, Ct3 = G3, jt3 = 0, Ot3 = St3.m, Bt3 = y4(Ot3, 1);
+                            var At3, xt3 = ut3, St3 = Y3, kt3 = pt3, It3 = gt3, Ct3 = G3, jt3 = 0, Ot3 = St3.m, Bt3 = y3(Ot3, 1);
                             if (i2(kt3, 0, 0, xt3), Bt3) {
-                              var qt3 = y4(Ot3, 1) + 1, Mt3 = y4(Ot3, 1), Et3 = y4(Ot3, 0 == Mt3 ? 1 : 8);
-                              kt3[Et3] = 1, 2 == qt3 && (kt3[Et3 = y4(Ot3, 8)] = 1);
+                              var qt3 = y3(Ot3, 1) + 1, Mt3 = y3(Ot3, 1), Et3 = y3(Ot3, 0 == Mt3 ? 1 : 8);
+                              kt3[Et3] = 1, 2 == qt3 && (kt3[Et3 = y3(Ot3, 8)] = 1);
                               var Dt3 = 1;
                             } else {
-                              var Rt3 = a2(19), Tt3 = y4(Ot3, 4) + 4;
+                              var Rt3 = a2(19), Tt3 = y3(Ot3, 4) + 4;
                               if (19 < Tt3) {
                                 St3.a = 3;
                                 var zt3 = 0;
                                 break n;
                               }
                               for (At3 = 0; At3 < Tt3; ++At3)
-                                Rt3[Zn[At3]] = y4(Ot3, 3);
+                                Rt3[Zn[At3]] = y3(Ot3, 3);
                               var Ut3 = void 0, Ht3 = void 0, Wt3 = St3, Vt3 = Rt3, Gt3 = xt3, Yt3 = kt3, Jt3 = 0, Xt3 = Wt3.m, Kt3 = 8, Zt3 = o2(128, l3);
                               i:
                                 for (; h3(Zt3, 0, 7, Vt3, 19); ) {
-                                  if (y4(Xt3, 1)) {
-                                    var $t3 = 2 + 2 * y4(Xt3, 3);
-                                    if ((Ut3 = 2 + y4(Xt3, $t3)) > Gt3)
+                                  if (y3(Xt3, 1)) {
+                                    var $t3 = 2 + 2 * y3(Xt3, 3);
+                                    if ((Ut3 = 2 + y3(Xt3, $t3)) > Gt3)
                                       break i;
                                   } else
                                     Ut3 = Gt3;
@@ -31122,7 +31344,7 @@ var require_jspdf_node_min = __commonJS({
                                     if (16 > te3)
                                       Yt3[Ht3++] = te3, 0 != te3 && (Kt3 = te3);
                                     else {
-                                      var ee3 = 16 == te3, re3 = te3 - 16, ne3 = Jn[re3], ie3 = y4(Xt3, Yn[re3]) + ne3;
+                                      var ee3 = 16 == te3, re3 = te3 - 16, ne3 = Jn[re3], ie3 = y3(Xt3, Yn[re3]) + ne3;
                                       if (Ht3 + ie3 > Gt3)
                                         break i;
                                       for (var ae3 = ee3 ? Kt3 : 0; 0 < ie3--; )
@@ -31163,12 +31385,12 @@ var require_jspdf_node_min = __commonJS({
                 break t;
               }
               if (0 < b4) {
-                if (m5.ua = 1 << b4, !O2(m5.Wa, b4)) {
+                if (m4.ua = 1 << b4, !O2(m4.Wa, b4)) {
                   s3.a = 1, u4 = 0;
                   break t;
                 }
               } else
-                m5.ua = 0;
+                m4.ua = 0;
               var de3 = s3, pe3 = f4, ge3 = p4, me3 = de3.s, ve2 = me3.xc;
               if (de3.c = pe3, de3.i = ge3, me3.md = E2(pe3, ve2), me3.wc = 0 == ve2 ? -1 : (1 << ve2) - 1, n3) {
                 s3.xb = pi;
@@ -31181,7 +31403,7 @@ var require_jspdf_node_min = __commonJS({
               u4 = (u4 = _t2(s3, v4, 0, f4, p4, p4, null)) && !g4.h;
               break t;
             }
-          return u4 ? (null != c4 ? c4[0] = v4 : (e2(null == v4), e2(n3)), s3.$ = 0, n3 || Pt2(m5)) : Pt2(m5), u4;
+          return u4 ? (null != c4 ? c4[0] = v4 : (e2(null == v4), e2(n3)), s3.$ = 0, n3 || Pt2(m4)) : Pt2(m4), u4;
         }
         function It2(t4, r3) {
           var n3 = t4.c * t4.i, i3 = n3 + r3 + 16 * r3;
@@ -31285,9 +31507,9 @@ var require_jspdf_node_min = __commonJS({
           if (e2(null != s3), e2(null != u4), u4.Cb = P2(s3), u4.Cb) {
             if (u4.Bb = P2(s3), P2(s3)) {
               for (u4.Fb = P2(s3), h4 = 0; 4 > h4; ++h4)
-                u4.Zb[h4] = P2(s3) ? m4(s3, 7) : 0;
+                u4.Zb[h4] = P2(s3) ? m3(s3, 7) : 0;
               for (h4 = 0; 4 > h4; ++h4)
-                u4.Lb[h4] = P2(s3) ? m4(s3, 6) : 0;
+                u4.Lb[h4] = P2(s3) ? m3(s3, 6) : 0;
             }
             if (u4.Bb)
               for (h4 = 0; 3 > h4; ++h4)
@@ -31298,9 +31520,9 @@ var require_jspdf_node_min = __commonJS({
             return Jt2(t4, 3, "cannot parse segment header");
           if ((u4 = t4.ed).zd = P2(s3), u4.Tb = g3(s3, 6), u4.wb = g3(s3, 3), u4.Pc = P2(s3), u4.Pc && P2(s3)) {
             for (l4 = 0; 4 > l4; ++l4)
-              P2(s3) && (u4.vd[l4] = m4(s3, 6));
+              P2(s3) && (u4.vd[l4] = m3(s3, 6));
             for (l4 = 0; 4 > l4; ++l4)
-              P2(s3) && (u4.od[l4] = m4(s3, 6));
+              P2(s3) && (u4.od[l4] = m3(s3, 6));
           }
           if (t4.L = 0 == u4.Tb ? 0 : u4.zd ? 1 : 2, s3.Ka)
             return Jt2(t4, 3, "cannot parse filter header");
@@ -31316,7 +31538,7 @@ var require_jspdf_node_min = __commonJS({
           }
           if (0 != n3)
             return Jt2(t4, n3, "cannot parse partitions");
-          for (n3 = g3(h4 = t4.m, 7), o3 = P2(h4) ? m4(h4, 4) : 0, a3 = P2(h4) ? m4(h4, 4) : 0, u4 = P2(h4) ? m4(h4, 4) : 0, l4 = P2(h4) ? m4(h4, 4) : 0, h4 = P2(h4) ? m4(h4, 4) : 0, f4 = t4.Qa, d4 = 0; 4 > d4; ++d4) {
+          for (n3 = g3(h4 = t4.m, 7), o3 = P2(h4) ? m3(h4, 4) : 0, a3 = P2(h4) ? m3(h4, 4) : 0, u4 = P2(h4) ? m3(h4, 4) : 0, l4 = P2(h4) ? m3(h4, 4) : 0, h4 = P2(h4) ? m3(h4, 4) : 0, f4 = t4.Qa, d4 = 0; 4 > d4; ++d4) {
             if (f4.Cb) {
               var v4 = f4.Zb[d4];
               f4.Fb || (v4 += n3);
@@ -31414,7 +31636,7 @@ var require_jspdf_node_min = __commonJS({
               t: {
                 s3 = t4.Ic;
                 c4 = 4 * (d4 = t4.za);
-                var p4 = 32 * d4, g4 = d4 + 1, m5 = 0 < t4.L ? d4 * (0 < t4.Aa ? 2 : 1) : 0, v4 = (2 == t4.Aa ? 2 : 1) * d4;
+                var p4 = 32 * d4, g4 = d4 + 1, m4 = 0 < t4.L ? d4 * (0 < t4.Aa ? 2 : 1) : 0, v4 = (2 == t4.Aa ? 2 : 1) * d4;
                 if ((l4 = c4 + 832 + (u4 = 3 * (16 * s3 + Ri[t4.L]) / 2 * p4) + (h4 = null != t4.Fa && 0 < t4.Fa.length ? t4.Kc.c * t4.Kc.i : 0)) != l4)
                   s3 = 0;
                 else {
@@ -31425,7 +31647,7 @@ var require_jspdf_node_min = __commonJS({
                     }
                     t4.Vb = l4;
                   }
-                  l4 = t4.Ec, f4 = t4.Fc, t4.Ac = l4, t4.Bc = f4, f4 += c4, t4.Gd = o2(p4, Ht2), t4.Hd = 0, t4.rb = o2(g4 + 1, Rt2), t4.sb = 1, t4.wa = m5 ? o2(m5, Dt2) : null, t4.Y = 0, t4.D.Nb = 0, t4.D.wa = t4.wa, t4.D.Y = t4.Y, 0 < t4.Aa && (t4.D.Y += d4), e2(true), t4.oc = l4, t4.pc = f4, f4 += 832, t4.ya = o2(v4, zt2), t4.aa = 0, t4.D.ya = t4.ya, t4.D.aa = t4.aa, 2 == t4.Aa && (t4.D.aa += d4), t4.R = 16 * d4, t4.B = 8 * d4, d4 = (p4 = Ri[t4.L]) * t4.R, p4 = p4 / 2 * t4.B, t4.sa = l4, t4.ta = f4 + d4, t4.qa = t4.sa, t4.ra = t4.ta + 16 * s3 * t4.R + p4, t4.Ha = t4.qa, t4.Ia = t4.ra + 8 * s3 * t4.B + p4, t4.$c = 0, f4 += u4, t4.mb = h4 ? l4 : null, t4.nb = h4 ? f4 : null, e2(f4 + h4 <= t4.Fc + t4.Vb), $t2(t4), i2(t4.Ac, t4.Bc, 0, c4), s3 = 1;
+                  l4 = t4.Ec, f4 = t4.Fc, t4.Ac = l4, t4.Bc = f4, f4 += c4, t4.Gd = o2(p4, Ht2), t4.Hd = 0, t4.rb = o2(g4 + 1, Rt2), t4.sb = 1, t4.wa = m4 ? o2(m4, Dt2) : null, t4.Y = 0, t4.D.Nb = 0, t4.D.wa = t4.wa, t4.D.Y = t4.Y, 0 < t4.Aa && (t4.D.Y += d4), e2(true), t4.oc = l4, t4.pc = f4, f4 += 832, t4.ya = o2(v4, zt2), t4.aa = 0, t4.D.ya = t4.ya, t4.D.aa = t4.aa, 2 == t4.Aa && (t4.D.aa += d4), t4.R = 16 * d4, t4.B = 8 * d4, d4 = (p4 = Ri[t4.L]) * t4.R, p4 = p4 / 2 * t4.B, t4.sa = l4, t4.ta = f4 + d4, t4.qa = t4.sa, t4.ra = t4.ta + 16 * s3 * t4.R + p4, t4.Ha = t4.qa, t4.Ia = t4.ra + 8 * s3 * t4.B + p4, t4.$c = 0, f4 += u4, t4.mb = h4 ? l4 : null, t4.nb = h4 ? f4 : null, e2(f4 + h4 <= t4.Fc + t4.Vb), $t2(t4), i2(t4.Ac, t4.Bc, 0, c4), s3 = 1;
                 }
               }
               if (s3) {
@@ -31450,19 +31672,19 @@ var require_jspdf_node_min = __commonJS({
                 for (o3 = 0; o3 < u5.za; ++o3) {
                   var h5 = c5, l5 = u5, f5 = l5.Ac, d5 = l5.Bc + 4 * o3, p5 = l5.zc, g5 = l5.ya[l5.aa + o3];
                   if (l5.Qa.Bb ? g5.$b = k2(h5, l5.Pa.jb[0]) ? 2 + k2(h5, l5.Pa.jb[2]) : k2(h5, l5.Pa.jb[1]) : g5.$b = 0, l5.kc && (g5.Ad = k2(h5, l5.Bd)), g5.Za = !k2(h5, 145) + 0, g5.Za) {
-                    var m6 = g5.Ob, v5 = 0;
+                    var m5 = g5.Ob, v5 = 0;
                     for (l5 = 0; 4 > l5; ++l5) {
-                      var b4, y5 = p5[0 + l5];
+                      var b4, y4 = p5[0 + l5];
                       for (b4 = 0; 4 > b4; ++b4) {
-                        y5 = ci[f5[d5 + b4]][y5];
-                        for (var w4 = oi[k2(h5, y5[0])]; 0 < w4; )
-                          w4 = oi[2 * w4 + k2(h5, y5[w4])];
-                        y5 = -w4, f5[d5 + b4] = y5;
+                        y4 = ci[f5[d5 + b4]][y4];
+                        for (var w4 = oi[k2(h5, y4[0])]; 0 < w4; )
+                          w4 = oi[2 * w4 + k2(h5, y4[w4])];
+                        y4 = -w4, f5[d5 + b4] = y4;
                       }
-                      n2(m6, v5, f5, d5, 4), v5 += 4, p5[0 + l5] = y5;
+                      n2(m5, v5, f5, d5, 4), v5 += 4, p5[0 + l5] = y4;
                     }
                   } else
-                    y5 = k2(h5, 156) ? k2(h5, 128) ? 1 : 3 : k2(h5, 163) ? 2 : 0, g5.Ob[0] = y5, i2(f5, d5, y5, 4), i2(p5, 0, y5, 4);
+                    y4 = k2(h5, 156) ? k2(h5, 128) ? 1 : 3 : k2(h5, 163) ? 2 : 0, g5.Ob[0] = y4, i2(f5, d5, y4, 4), i2(p5, 0, y4, 4);
                   g5.Dd = k2(h5, 142) ? k2(h5, 114) ? k2(h5, 183) ? 1 : 3 : 2 : 0;
                 }
                 if (u5.m.Ka)
@@ -31473,17 +31695,17 @@ var require_jspdf_node_min = __commonJS({
                   else {
                     var N4, L4;
                     h5 = f5, f5 = u5, d5 = c5.Pa.Xc, p5 = c5.ya[c5.aa + c5.ja], g5 = c5.pb[p5.$b];
-                    if (l5 = p5.ad, m6 = 0, v5 = c5.rb[c5.sb - 1], y5 = b4 = 0, i2(l5, m6, 0, 384), p5.Za)
+                    if (l5 = p5.ad, m5 = 0, v5 = c5.rb[c5.sb - 1], y4 = b4 = 0, i2(l5, m5, 0, 384), p5.Za)
                       var A4 = 0, x3 = d5[3];
                     else {
                       w4 = a2(16);
                       var S3 = h5.Na + v5.Na;
                       if (S3 = ni(f5, d5[1], S3, g5.Eb, 0, w4, 0), h5.Na = v5.Na = (0 < S3) + 0, 1 < S3)
-                        an(w4, 0, l5, m6);
+                        an(w4, 0, l5, m5);
                       else {
                         var _3 = w4[0] + 3 >> 3;
                         for (w4 = 0; 256 > w4; w4 += 16)
-                          l5[m6 + w4] = _3;
+                          l5[m5 + w4] = _3;
                       }
                       A4 = 1, x3 = d5[0];
                     }
@@ -31491,25 +31713,25 @@ var require_jspdf_node_min = __commonJS({
                     for (w4 = 0; 4 > w4; ++w4) {
                       var I3 = 1 & F3;
                       for (_3 = L4 = 0; 4 > _3; ++_3)
-                        P3 = P3 >> 1 | (I3 = (S3 = ni(f5, x3, S3 = I3 + (1 & P3), g5.Sc, A4, l5, m6)) > A4) << 7, L4 = L4 << 2 | (3 < S3 ? 3 : 1 < S3 ? 2 : 0 != l5[m6 + 0]), m6 += 16;
+                        P3 = P3 >> 1 | (I3 = (S3 = ni(f5, x3, S3 = I3 + (1 & P3), g5.Sc, A4, l5, m5)) > A4) << 7, L4 = L4 << 2 | (3 < S3 ? 3 : 1 < S3 ? 2 : 0 != l5[m5 + 0]), m5 += 16;
                       P3 >>= 4, F3 = F3 >> 1 | I3 << 7, b4 = (b4 << 8 | L4) >>> 0;
                     }
                     for (x3 = P3, A4 = F3 >> 4, N4 = 0; 4 > N4; N4 += 2) {
                       for (L4 = 0, P3 = h5.la >> 4 + N4, F3 = v5.la >> 4 + N4, w4 = 0; 2 > w4; ++w4) {
                         for (I3 = 1 & F3, _3 = 0; 2 > _3; ++_3)
-                          S3 = I3 + (1 & P3), P3 = P3 >> 1 | (I3 = 0 < (S3 = ni(f5, d5[2], S3, g5.Qc, 0, l5, m6))) << 3, L4 = L4 << 2 | (3 < S3 ? 3 : 1 < S3 ? 2 : 0 != l5[m6 + 0]), m6 += 16;
+                          S3 = I3 + (1 & P3), P3 = P3 >> 1 | (I3 = 0 < (S3 = ni(f5, d5[2], S3, g5.Qc, 0, l5, m5))) << 3, L4 = L4 << 2 | (3 < S3 ? 3 : 1 < S3 ? 2 : 0 != l5[m5 + 0]), m5 += 16;
                         P3 >>= 2, F3 = F3 >> 1 | I3 << 5;
                       }
-                      y5 |= L4 << 4 * N4, x3 |= P3 << 4 << N4, A4 |= (240 & F3) << N4;
+                      y4 |= L4 << 4 * N4, x3 |= P3 << 4 << N4, A4 |= (240 & F3) << N4;
                     }
-                    h5.la = x3, v5.la = A4, p5.Hc = b4, p5.Gc = y5, p5.ia = 43690 & y5 ? 0 : g5.ia, d5 = !(b4 | y5);
+                    h5.la = x3, v5.la = A4, p5.Hc = b4, p5.Gc = y4, p5.ia = 43690 & y4 ? 0 : g5.ia, d5 = !(b4 | y4);
                   }
                   if (0 < c5.L && (c5.wa[c5.Y + c5.ja] = c5.gd[o3.$b][o3.Za], c5.wa[c5.Y + c5.ja].La |= !d5), u5.Ka)
                     return Jt2(t5, 7, "Premature end-of-file encountered.");
                 }
                 if ($t2(t5), c5 = r4, u5 = 1, o3 = (s4 = t5).D, h5 = 0 < s4.L && s4.M >= s4.zb && s4.M <= s4.Va, 0 == s4.Aa)
                   t: {
-                    if (o3.M = s4.M, o3.uc = h5, Or(s4, o3), u5 = 1, o3 = (L4 = s4.D).Nb, h5 = (y5 = Ri[s4.L]) * s4.R, f5 = y5 / 2 * s4.B, w4 = 16 * o3 * s4.R, _3 = 8 * o3 * s4.B, d5 = s4.sa, p5 = s4.ta - h5 + w4, g5 = s4.qa, l5 = s4.ra - f5 + _3, m6 = s4.Ha, v5 = s4.Ia - f5 + _3, F3 = 0 == (P3 = L4.M), b4 = P3 >= s4.Va - 1, 2 == s4.Aa && Or(s4, L4), L4.uc)
+                    if (o3.M = s4.M, o3.uc = h5, Or(s4, o3), u5 = 1, o3 = (L4 = s4.D).Nb, h5 = (y4 = Ri[s4.L]) * s4.R, f5 = y4 / 2 * s4.B, w4 = 16 * o3 * s4.R, _3 = 8 * o3 * s4.B, d5 = s4.sa, p5 = s4.ta - h5 + w4, g5 = s4.qa, l5 = s4.ra - f5 + _3, m5 = s4.Ha, v5 = s4.Ia - f5 + _3, F3 = 0 == (P3 = L4.M), b4 = P3 >= s4.Va - 1, 2 == s4.Aa && Or(s4, L4), L4.uc)
                       for (I3 = (S3 = s4).D.M, e2(S3.D.uc), L4 = S3.yb; L4 < S3.Hb; ++L4) {
                         A4 = L4, x3 = I3;
                         var C3 = (j3 = (z3 = S3).D).Nb;
@@ -31525,13 +31747,13 @@ var require_jspdf_node_min = __commonJS({
                           }
                       }
                     if (s4.ia && alert("todo:DitherRow"), null != c5.put) {
-                      if (L4 = 16 * P3, P3 = 16 * (P3 + 1), F3 ? (c5.y = s4.sa, c5.O = s4.ta + w4, c5.f = s4.qa, c5.N = s4.ra + _3, c5.ea = s4.Ha, c5.W = s4.Ia + _3) : (L4 -= y5, c5.y = d5, c5.O = p5, c5.f = g5, c5.N = l5, c5.ea = m6, c5.W = v5), b4 || (P3 -= y5), P3 > c5.o && (P3 = c5.o), c5.F = null, c5.J = null, null != s4.Fa && 0 < s4.Fa.length && L4 < P3 && (c5.J = lr(s4, c5, L4, P3 - L4), c5.F = s4.mb, null == c5.F && 0 == c5.F.length)) {
+                      if (L4 = 16 * P3, P3 = 16 * (P3 + 1), F3 ? (c5.y = s4.sa, c5.O = s4.ta + w4, c5.f = s4.qa, c5.N = s4.ra + _3, c5.ea = s4.Ha, c5.W = s4.Ia + _3) : (L4 -= y4, c5.y = d5, c5.O = p5, c5.f = g5, c5.N = l5, c5.ea = m5, c5.W = v5), b4 || (P3 -= y4), P3 > c5.o && (P3 = c5.o), c5.F = null, c5.J = null, null != s4.Fa && 0 < s4.Fa.length && L4 < P3 && (c5.J = lr(s4, c5, L4, P3 - L4), c5.F = s4.mb, null == c5.F && 0 == c5.F.length)) {
                         u5 = Jt2(s4, 3, "Could not decode alpha data.");
                         break t;
                       }
-                      L4 < c5.j && (y5 = c5.j - L4, L4 = c5.j, e2(!(1 & y5)), c5.O += s4.R * y5, c5.N += s4.B * (y5 >> 1), c5.W += s4.B * (y5 >> 1), null != c5.F && (c5.J += c5.width * y5)), L4 < P3 && (c5.O += c5.v, c5.N += c5.v >> 1, c5.W += c5.v >> 1, null != c5.F && (c5.J += c5.v), c5.ka = L4 - c5.j, c5.U = c5.va - c5.v, c5.T = P3 - L4, u5 = c5.put(c5));
+                      L4 < c5.j && (y4 = c5.j - L4, L4 = c5.j, e2(!(1 & y4)), c5.O += s4.R * y4, c5.N += s4.B * (y4 >> 1), c5.W += s4.B * (y4 >> 1), null != c5.F && (c5.J += c5.width * y4)), L4 < P3 && (c5.O += c5.v, c5.N += c5.v >> 1, c5.W += c5.v >> 1, null != c5.F && (c5.J += c5.v), c5.ka = L4 - c5.j, c5.U = c5.va - c5.v, c5.T = P3 - L4, u5 = c5.put(c5));
                     }
-                    o3 + 1 != s4.Ic || b4 || (n2(s4.sa, s4.ta - h5, d5, p5 + 16 * s4.R, h5), n2(s4.qa, s4.ra - f5, g5, l5 + 8 * s4.B, f5), n2(s4.Ha, s4.Ia - f5, m6, v5 + 8 * s4.B, f5));
+                    o3 + 1 != s4.Ic || b4 || (n2(s4.sa, s4.ta - h5, d5, p5 + 16 * s4.R, h5), n2(s4.qa, s4.ra - f5, g5, l5 + 8 * s4.B, f5), n2(s4.Ha, s4.Ia - f5, m5, v5 + 8 * s4.B, f5));
                   }
                 if (!u5)
                   return Jt2(t5, 6, "Output aborted.");
@@ -31762,8 +31984,8 @@ var require_jspdf_node_min = __commonJS({
               if (Re(t4, e3, r3, s3))
                 De(t4, e3, r3);
               else {
-                var c4 = t4, u4 = e3, h4 = r3, l4 = c4[u4 - 2 * h4], f4 = c4[u4 - h4], d4 = c4[u4 + 0], p4 = c4[u4 + h4], g4 = c4[u4 + 2 * h4], m5 = 27 * (b4 = jn[1020 + 3 * (d4 - f4) + jn[1020 + l4 - p4]]) + 63 >> 7, v4 = 18 * b4 + 63 >> 7, b4 = 9 * b4 + 63 >> 7;
-                c4[u4 - 3 * h4] = Bn[255 + c4[u4 - 3 * h4] + b4], c4[u4 - 2 * h4] = Bn[255 + l4 + v4], c4[u4 - h4] = Bn[255 + f4 + m5], c4[u4 + 0] = Bn[255 + d4 - m5], c4[u4 + h4] = Bn[255 + p4 - v4], c4[u4 + 2 * h4] = Bn[255 + g4 - b4];
+                var c4 = t4, u4 = e3, h4 = r3, l4 = c4[u4 - 2 * h4], f4 = c4[u4 - h4], d4 = c4[u4 + 0], p4 = c4[u4 + h4], g4 = c4[u4 + 2 * h4], m4 = 27 * (b4 = jn[1020 + 3 * (d4 - f4) + jn[1020 + l4 - p4]]) + 63 >> 7, v4 = 18 * b4 + 63 >> 7, b4 = 9 * b4 + 63 >> 7;
+                c4[u4 - 3 * h4] = Bn[255 + c4[u4 - 3 * h4] + b4], c4[u4 - 2 * h4] = Bn[255 + l4 + v4], c4[u4 - h4] = Bn[255 + f4 + m4], c4[u4 + 0] = Bn[255 + d4 - m4], c4[u4 + h4] = Bn[255 + p4 - v4], c4[u4 + 2 * h4] = Bn[255 + g4 - b4];
               }
             e3 += n3;
           }
@@ -31774,8 +31996,8 @@ var require_jspdf_node_min = __commonJS({
               if (Re(t4, e3, r3, s3))
                 De(t4, e3, r3);
               else {
-                var c4 = t4, u4 = e3, h4 = r3, l4 = c4[u4 - h4], f4 = c4[u4 + 0], d4 = c4[u4 + h4], p4 = On[112 + ((g4 = 3 * (f4 - l4)) + 4 >> 3)], g4 = On[112 + (g4 + 3 >> 3)], m5 = p4 + 1 >> 1;
-                c4[u4 - 2 * h4] = Bn[255 + c4[u4 - 2 * h4] + m5], c4[u4 - h4] = Bn[255 + l4 + g4], c4[u4 + 0] = Bn[255 + f4 - p4], c4[u4 + h4] = Bn[255 + d4 - m5];
+                var c4 = t4, u4 = e3, h4 = r3, l4 = c4[u4 - h4], f4 = c4[u4 + 0], d4 = c4[u4 + h4], p4 = On[112 + ((g4 = 3 * (f4 - l4)) + 4 >> 3)], g4 = On[112 + (g4 + 3 >> 3)], m4 = p4 + 1 >> 1;
+                c4[u4 - 2 * h4] = Bn[255 + c4[u4 - 2 * h4] + m4], c4[u4 - h4] = Bn[255 + l4 + g4], c4[u4 + 0] = Bn[255 + f4 - p4], c4[u4 + h4] = Bn[255 + d4 - m4];
               }
             e3 += n3;
           }
@@ -31856,7 +32078,7 @@ var require_jspdf_node_min = __commonJS({
               var u4;
               if (t4.ga = new sr(), (u4 = null == t4.ga) || (u4 = r3.width * r3.o, e2(0 == t4.Gb.length), t4.Gb = a2(u4), t4.Uc = 0, null == t4.Gb ? u4 = 0 : (t4.mb = t4.Gb, t4.nb = t4.Uc, t4.rc = null, u4 = 1), u4 = !u4), !u4) {
                 u4 = t4.ga;
-                var h4 = t4.Fa, l4 = t4.P, f4 = t4.qc, d4 = t4.mb, p4 = t4.nb, g4 = l4 + 1, m5 = f4 - 1, b4 = u4.l;
+                var h4 = t4.Fa, l4 = t4.P, f4 = t4.qc, d4 = t4.mb, p4 = t4.nb, g4 = l4 + 1, m4 = f4 - 1, b4 = u4.l;
                 if (e2(null != h4 && null != d4 && null != r3), mi[0] = null, mi[1] = cr, mi[2] = ur, mi[3] = hr, u4.ca = d4, u4.tb = p4, u4.c = r3.width, u4.i = r3.height, e2(0 < u4.c && 0 < u4.i), 1 >= f4)
                   r3 = 0;
                 else if (u4.$a = h4[l4 + 0] >> 0 & 3, u4.Z = h4[l4 + 0] >> 2 & 3, u4.Lc = h4[l4 + 0] >> 4 & 3, l4 = h4[l4 + 0] >> 6 & 3, 0 > u4.$a || 1 < u4.$a || 4 <= u4.Z || 1 < u4.Lc || l4)
@@ -31870,7 +32092,7 @@ var require_jspdf_node_min = __commonJS({
                           r3 = 0;
                           break t;
                         }
-                        if (e2(null != u4), u4.mc = r3, r3.c = u4.c, r3.i = u4.i, r3.l = u4.l, r3.l.ma = u4, r3.l.width = u4.c, r3.l.height = u4.i, r3.a = 0, v3(r3.m, h4, g4, m5), !Ft2(u4.c, u4.i, 1, r3, null))
+                        if (e2(null != u4), u4.mc = r3, r3.c = u4.c, r3.i = u4.i, r3.l = u4.l, r3.l.ma = u4, r3.l.width = u4.c, r3.l.height = u4.i, r3.a = 0, v3(r3.m, h4, g4, m4), !Ft2(u4.c, u4.i, 1, r3, null))
                           break e;
                         if (1 == r3.ab && 3 == r3.gc[0].hc && At2(r3.s) ? (u4.ic = 1, h4 = r3.c * r3.i, r3.Ta = null, r3.Ua = 0, r3.V = a2(h4), r3.Ba = 0, null == r3.V ? (r3.a = 1, r3 = 0) : r3 = 1) : (u4.ic = 0, r3 = It2(r3, u4.c)), !r3)
                           break e;
@@ -31880,7 +32102,7 @@ var require_jspdf_node_min = __commonJS({
                     u4.mc = null, r3 = 0;
                   }
                 else
-                  r3 = m5 >= u4.c * u4.i;
+                  r3 = m4 >= u4.c * u4.i;
                 u4 = !r3;
               }
               if (u4)
@@ -31890,40 +32112,40 @@ var require_jspdf_node_min = __commonJS({
             e2(null != t4.ga), e2(i3 + o3 <= c4);
             t: {
               if (r3 = (h4 = t4.ga).c, c4 = h4.l.o, 0 == h4.$a) {
-                if (g4 = t4.rc, m5 = t4.Vc, b4 = t4.Fa, l4 = t4.P + 1 + i3 * r3, f4 = t4.mb, d4 = t4.nb + i3 * r3, e2(l4 <= t4.P + t4.qc), 0 != h4.Z)
+                if (g4 = t4.rc, m4 = t4.Vc, b4 = t4.Fa, l4 = t4.P + 1 + i3 * r3, f4 = t4.mb, d4 = t4.nb + i3 * r3, e2(l4 <= t4.P + t4.qc), 0 != h4.Z)
                   for (e2(null != mi[h4.Z]), u4 = 0; u4 < o3; ++u4)
-                    mi[h4.Z](g4, m5, b4, l4, f4, d4, r3), g4 = f4, m5 = d4, d4 += r3, l4 += r3;
+                    mi[h4.Z](g4, m4, b4, l4, f4, d4, r3), g4 = f4, m4 = d4, d4 += r3, l4 += r3;
                 else
                   for (u4 = 0; u4 < o3; ++u4)
-                    n2(f4, d4, b4, l4, r3), g4 = f4, m5 = d4, d4 += r3, l4 += r3;
-                t4.rc = g4, t4.Vc = m5;
+                    n2(f4, d4, b4, l4, r3), g4 = f4, m4 = d4, d4 += r3, l4 += r3;
+                t4.rc = g4, t4.Vc = m4;
               } else {
                 if (e2(null != h4.mc), r3 = i3 + o3, e2(null != (u4 = h4.mc)), e2(r3 <= u4.i), u4.C >= r3)
                   r3 = 1;
                 else if (h4.ic || mr(), h4.ic) {
-                  h4 = u4.V, g4 = u4.Ba, m5 = u4.c;
-                  var y5 = u4.i, w4 = (b4 = 1, l4 = u4.$ / m5, f4 = u4.$ % m5, d4 = u4.m, p4 = u4.s, u4.$), N4 = m5 * y5, L4 = m5 * r3, x3 = p4.wc, _3 = w4 < L4 ? wt2(p4, f4, l4) : null;
-                  e2(w4 <= N4), e2(r3 <= y5), e2(At2(p4));
+                  h4 = u4.V, g4 = u4.Ba, m4 = u4.c;
+                  var y4 = u4.i, w4 = (b4 = 1, l4 = u4.$ / m4, f4 = u4.$ % m4, d4 = u4.m, p4 = u4.s, u4.$), N4 = m4 * y4, L4 = m4 * r3, x3 = p4.wc, _3 = w4 < L4 ? wt2(p4, f4, l4) : null;
+                  e2(w4 <= N4), e2(r3 <= y4), e2(At2(p4));
                   e:
                     for (; ; ) {
                       for (; !d4.h && w4 < L4; ) {
-                        if (f4 & x3 || (_3 = wt2(p4, f4, l4)), e2(null != _3), S2(d4), 256 > (y5 = bt2(_3.G[0], _3.H[0], d4)))
-                          h4[g4 + w4] = y5, ++w4, ++f4 >= m5 && (f4 = 0, ++l4 <= r3 && !(l4 % 16) && St2(u4, l4));
+                        if (f4 & x3 || (_3 = wt2(p4, f4, l4)), e2(null != _3), S2(d4), 256 > (y4 = bt2(_3.G[0], _3.H[0], d4)))
+                          h4[g4 + w4] = y4, ++w4, ++f4 >= m4 && (f4 = 0, ++l4 <= r3 && !(l4 % 16) && St2(u4, l4));
                         else {
-                          if (!(280 > y5)) {
+                          if (!(280 > y4)) {
                             b4 = 0;
                             break e;
                           }
-                          y5 = mt2(y5 - 256, d4);
+                          y4 = mt2(y4 - 256, d4);
                           var P3, k3 = bt2(_3.G[4], _3.H[4], d4);
-                          if (S2(d4), !(w4 >= (k3 = vt2(m5, k3 = mt2(k3, d4))) && N4 - w4 >= y5)) {
+                          if (S2(d4), !(w4 >= (k3 = vt2(m4, k3 = mt2(k3, d4))) && N4 - w4 >= y4)) {
                             b4 = 0;
                             break e;
                           }
-                          for (P3 = 0; P3 < y5; ++P3)
+                          for (P3 = 0; P3 < y4; ++P3)
                             h4[g4 + w4 + P3] = h4[g4 + w4 + P3 - k3];
-                          for (w4 += y5, f4 += y5; f4 >= m5; )
-                            f4 -= m5, ++l4 <= r3 && !(l4 % 16) && St2(u4, l4);
+                          for (w4 += y4, f4 += y4; f4 >= m4; )
+                            f4 -= m4, ++l4 <= r3 && !(l4 % 16) && St2(u4, l4);
                           w4 < L4 && f4 & x3 && (_3 = wt2(p4, f4, l4));
                         }
                         e2(d4.h == A3(d4));
@@ -31988,15 +32210,15 @@ var require_jspdf_node_min = __commonJS({
           An = fr, xn = dr, Sn = pr, _n = gr;
         }
         function vr(r3, n3, i3) {
-          t3[r3] = function(t4, r4, a3, o3, s3, c4, u4, h4, l4, f4, d4, p4, g4, m5, v4, b4, y5) {
-            var w4, N4 = y5 - 1 >> 1, L4 = s3[c4 + 0] | u4[h4 + 0] << 16, A4 = l4[f4 + 0] | d4[p4 + 0] << 16;
+          t3[r3] = function(t4, r4, a3, o3, s3, c4, u4, h4, l4, f4, d4, p4, g4, m4, v4, b4, y4) {
+            var w4, N4 = y4 - 1 >> 1, L4 = s3[c4 + 0] | u4[h4 + 0] << 16, A4 = l4[f4 + 0] | d4[p4 + 0] << 16;
             e2(null != t4);
             var x3 = 3 * L4 + A4 + 131074 >> 2;
-            for (n3(t4[r4 + 0], 255 & x3, x3 >> 16, g4, m5), null != a3 && (x3 = 3 * A4 + L4 + 131074 >> 2, n3(a3[o3 + 0], 255 & x3, x3 >> 16, v4, b4)), w4 = 1; w4 <= N4; ++w4) {
+            for (n3(t4[r4 + 0], 255 & x3, x3 >> 16, g4, m4), null != a3 && (x3 = 3 * A4 + L4 + 131074 >> 2, n3(a3[o3 + 0], 255 & x3, x3 >> 16, v4, b4)), w4 = 1; w4 <= N4; ++w4) {
               var S3 = s3[c4 + w4] | u4[h4 + w4] << 16, _3 = l4[f4 + w4] | d4[p4 + w4] << 16, P3 = L4 + S3 + A4 + _3 + 524296, k3 = P3 + 2 * (S3 + A4) >> 3;
-              x3 = k3 + L4 >> 1, L4 = (P3 = P3 + 2 * (L4 + _3) >> 3) + S3 >> 1, n3(t4[r4 + 2 * w4 - 1], 255 & x3, x3 >> 16, g4, m5 + (2 * w4 - 1) * i3), n3(t4[r4 + 2 * w4 - 0], 255 & L4, L4 >> 16, g4, m5 + (2 * w4 - 0) * i3), null != a3 && (x3 = P3 + A4 >> 1, L4 = k3 + _3 >> 1, n3(a3[o3 + 2 * w4 - 1], 255 & x3, x3 >> 16, v4, b4 + (2 * w4 - 1) * i3), n3(a3[o3 + 2 * w4 + 0], 255 & L4, L4 >> 16, v4, b4 + (2 * w4 + 0) * i3)), L4 = S3, A4 = _3;
+              x3 = k3 + L4 >> 1, L4 = (P3 = P3 + 2 * (L4 + _3) >> 3) + S3 >> 1, n3(t4[r4 + 2 * w4 - 1], 255 & x3, x3 >> 16, g4, m4 + (2 * w4 - 1) * i3), n3(t4[r4 + 2 * w4 - 0], 255 & L4, L4 >> 16, g4, m4 + (2 * w4 - 0) * i3), null != a3 && (x3 = P3 + A4 >> 1, L4 = k3 + _3 >> 1, n3(a3[o3 + 2 * w4 - 1], 255 & x3, x3 >> 16, v4, b4 + (2 * w4 - 1) * i3), n3(a3[o3 + 2 * w4 + 0], 255 & L4, L4 >> 16, v4, b4 + (2 * w4 + 0) * i3)), L4 = S3, A4 = _3;
             }
-            1 & y5 || (x3 = 3 * L4 + A4 + 131074 >> 2, n3(t4[r4 + y5 - 1], 255 & x3, x3 >> 16, g4, m5 + (y5 - 1) * i3), null != a3 && (x3 = 3 * A4 + L4 + 131074 >> 2, n3(a3[o3 + y5 - 1], 255 & x3, x3 >> 16, v4, b4 + (y5 - 1) * i3)));
+            1 & y4 || (x3 = 3 * L4 + A4 + 131074 >> 2, n3(t4[r4 + y4 - 1], 255 & x3, x3 >> 16, g4, m4 + (y4 - 1) * i3), null != a3 && (x3 = 3 * A4 + L4 + 131074 >> 2, n3(a3[o3 + y4 - 1], 255 & x3, x3 >> 16, v4, b4 + (y4 - 1) * i3)));
           };
         }
         function br() {
@@ -32076,20 +32298,20 @@ var require_jspdf_node_min = __commonJS({
               for (r3 = -1; 8 > r3; ++r3)
                 n2(h4, l4 + 32 * r3 - 4, h4, l4 + 32 * r3 + 4, 4), n2(f4, d4 + 32 * r3 - 4, f4, d4 + 32 * r3 + 4, 4);
             }
-            var g4 = t4.Gd, m5 = t4.Hd + a3, v4 = p4.ad, b4 = p4.Hc;
-            if (0 < o3 && (n2(c4, u4 - 32, g4[m5].y, 0, 16), n2(h4, l4 - 32, g4[m5].f, 0, 8), n2(f4, d4 - 32, g4[m5].ea, 0, 8)), p4.Za) {
-              var y5 = c4, w4 = u4 - 32 + 16;
-              for (0 < o3 && (a3 >= t4.za - 1 ? i2(y5, w4, g4[m5].y[15], 4) : n2(y5, w4, g4[m5 + 1].y, 0, 4)), r3 = 0; 4 > r3; r3++)
-                y5[w4 + 128 + r3] = y5[w4 + 256 + r3] = y5[w4 + 384 + r3] = y5[w4 + 0 + r3];
+            var g4 = t4.Gd, m4 = t4.Hd + a3, v4 = p4.ad, b4 = p4.Hc;
+            if (0 < o3 && (n2(c4, u4 - 32, g4[m4].y, 0, 16), n2(h4, l4 - 32, g4[m4].f, 0, 8), n2(f4, d4 - 32, g4[m4].ea, 0, 8)), p4.Za) {
+              var y4 = c4, w4 = u4 - 32 + 16;
+              for (0 < o3 && (a3 >= t4.za - 1 ? i2(y4, w4, g4[m4].y[15], 4) : n2(y4, w4, g4[m4 + 1].y, 0, 4)), r3 = 0; 4 > r3; r3++)
+                y4[w4 + 128 + r3] = y4[w4 + 256 + r3] = y4[w4 + 384 + r3] = y4[w4 + 0 + r3];
               for (r3 = 0; 16 > r3; ++r3, b4 <<= 2)
-                y5 = c4, w4 = u4 + Di[r3], fi[p4.Ob[r3]](y5, w4), jr(b4, v4, 16 * +r3, y5, w4);
-            } else if (y5 = Cr(a3, o3, p4.Ob[0]), li[y5](c4, u4), 0 != b4)
+                y4 = c4, w4 = u4 + Di[r3], fi[p4.Ob[r3]](y4, w4), jr(b4, v4, 16 * +r3, y4, w4);
+            } else if (y4 = Cr(a3, o3, p4.Ob[0]), li[y4](c4, u4), 0 != b4)
               for (r3 = 0; 16 > r3; ++r3, b4 <<= 2)
                 jr(b4, v4, 16 * +r3, c4, u4 + Di[r3]);
-            for (r3 = p4.Gc, y5 = Cr(a3, o3, p4.Dd), di[y5](h4, l4), di[y5](f4, d4), b4 = v4, y5 = h4, w4 = l4, 255 & (p4 = r3 >> 0) && (170 & p4 ? cn(b4, 256, y5, w4) : hn(b4, 256, y5, w4)), p4 = f4, b4 = d4, 255 & (r3 >>= 8) && (170 & r3 ? cn(v4, 320, p4, b4) : hn(v4, 320, p4, b4)), o3 < t4.Ub - 1 && (n2(g4[m5].y, 0, c4, u4 + 480, 16), n2(g4[m5].f, 0, h4, l4 + 224, 8), n2(g4[m5].ea, 0, f4, d4 + 224, 8)), r3 = 8 * s3 * t4.B, g4 = t4.sa, m5 = t4.ta + 16 * a3 + 16 * s3 * t4.R, v4 = t4.qa, p4 = t4.ra + 8 * a3 + r3, b4 = t4.Ha, y5 = t4.Ia + 8 * a3 + r3, r3 = 0; 16 > r3; ++r3)
-              n2(g4, m5 + r3 * t4.R, c4, u4 + 32 * r3, 16);
+            for (r3 = p4.Gc, y4 = Cr(a3, o3, p4.Dd), di[y4](h4, l4), di[y4](f4, d4), b4 = v4, y4 = h4, w4 = l4, 255 & (p4 = r3 >> 0) && (170 & p4 ? cn(b4, 256, y4, w4) : hn(b4, 256, y4, w4)), p4 = f4, b4 = d4, 255 & (r3 >>= 8) && (170 & r3 ? cn(v4, 320, p4, b4) : hn(v4, 320, p4, b4)), o3 < t4.Ub - 1 && (n2(g4[m4].y, 0, c4, u4 + 480, 16), n2(g4[m4].f, 0, h4, l4 + 224, 8), n2(g4[m4].ea, 0, f4, d4 + 224, 8)), r3 = 8 * s3 * t4.B, g4 = t4.sa, m4 = t4.ta + 16 * a3 + 16 * s3 * t4.R, v4 = t4.qa, p4 = t4.ra + 8 * a3 + r3, b4 = t4.Ha, y4 = t4.Ia + 8 * a3 + r3, r3 = 0; 16 > r3; ++r3)
+              n2(g4, m4 + r3 * t4.R, c4, u4 + 32 * r3, 16);
             for (r3 = 0; 8 > r3; ++r3)
-              n2(v4, p4 + r3 * t4.B, h4, l4 + 32 * r3, 8), n2(b4, y5 + r3 * t4.B, f4, d4 + 32 * r3, 8);
+              n2(v4, p4 + r3 * t4.B, h4, l4 + 32 * r3, 8), n2(b4, y4 + r3 * t4.B, f4, d4 + 32 * r3, 8);
           }
         }
         function Br(t4, n3, i3, a3, o3, s3, c4, u4, h4) {
@@ -32098,147 +32320,147 @@ var require_jspdf_node_min = __commonJS({
             return 7;
           g4.data = t4, g4.w = n3, g4.ha = i3, n3 = [n3], i3 = [i3], g4.gb = [g4.gb];
           t: {
-            var m5 = n3, b4 = i3, y5 = g4.gb;
-            if (e2(null != t4), e2(null != b4), e2(null != y5), y5[0] = 0, 12 <= b4[0] && !r2(t4, m5[0], "RIFF")) {
-              if (r2(t4, m5[0] + 8, "WEBP")) {
-                y5 = 3;
+            var m4 = n3, b4 = i3, y4 = g4.gb;
+            if (e2(null != t4), e2(null != b4), e2(null != y4), y4[0] = 0, 12 <= b4[0] && !r2(t4, m4[0], "RIFF")) {
+              if (r2(t4, m4[0] + 8, "WEBP")) {
+                y4 = 3;
                 break t;
               }
-              var w4 = j2(t4, m5[0] + 4);
+              var w4 = j2(t4, m4[0] + 4);
               if (12 > w4 || 4294967286 < w4) {
-                y5 = 3;
+                y4 = 3;
                 break t;
               }
               if (p4 && w4 > b4[0] - 8) {
-                y5 = 7;
+                y4 = 7;
                 break t;
               }
-              y5[0] = w4, m5[0] += 12, b4[0] -= 12;
+              y4[0] = w4, m4[0] += 12, b4[0] -= 12;
             }
-            y5 = 0;
+            y4 = 0;
           }
-          if (0 != y5)
-            return y5;
+          if (0 != y4)
+            return y4;
           for (w4 = 0 < g4.gb[0], i3 = i3[0]; ; ) {
             t: {
               var L4 = t4;
-              b4 = n3, y5 = i3;
-              var A4 = l4, x3 = f4, S3 = m5 = [0];
-              if ((k3 = d4 = [d4])[0] = 0, 8 > y5[0])
-                y5 = 7;
+              b4 = n3, y4 = i3;
+              var A4 = l4, x3 = f4, S3 = m4 = [0];
+              if ((k3 = d4 = [d4])[0] = 0, 8 > y4[0])
+                y4 = 7;
               else {
                 if (!r2(L4, b4[0], "VP8X")) {
                   if (10 != j2(L4, b4[0] + 4)) {
-                    y5 = 3;
+                    y4 = 3;
                     break t;
                   }
-                  if (18 > y5[0]) {
-                    y5 = 7;
+                  if (18 > y4[0]) {
+                    y4 = 7;
                     break t;
                   }
                   var _3 = j2(L4, b4[0] + 8), P3 = 1 + C2(L4, b4[0] + 12);
                   if (2147483648 <= P3 * (L4 = 1 + C2(L4, b4[0] + 15))) {
-                    y5 = 3;
+                    y4 = 3;
                     break t;
                   }
-                  null != S3 && (S3[0] = _3), null != A4 && (A4[0] = P3), null != x3 && (x3[0] = L4), b4[0] += 18, y5[0] -= 18, k3[0] = 1;
+                  null != S3 && (S3[0] = _3), null != A4 && (A4[0] = P3), null != x3 && (x3[0] = L4), b4[0] += 18, y4[0] -= 18, k3[0] = 1;
                 }
-                y5 = 0;
+                y4 = 0;
               }
             }
-            if (d4 = d4[0], m5 = m5[0], 0 != y5)
-              return y5;
-            if (b4 = !!(2 & m5), !w4 && d4)
+            if (d4 = d4[0], m4 = m4[0], 0 != y4)
+              return y4;
+            if (b4 = !!(2 & m4), !w4 && d4)
               return 3;
-            if (null != s3 && (s3[0] = !!(16 & m5)), null != c4 && (c4[0] = b4), null != u4 && (u4[0] = 0), c4 = l4[0], m5 = f4[0], d4 && b4 && null == h4) {
-              y5 = 0;
+            if (null != s3 && (s3[0] = !!(16 & m4)), null != c4 && (c4[0] = b4), null != u4 && (u4[0] = 0), c4 = l4[0], m4 = f4[0], d4 && b4 && null == h4) {
+              y4 = 0;
               break;
             }
             if (4 > i3) {
-              y5 = 7;
+              y4 = 7;
               break;
             }
             if (w4 && d4 || !w4 && !d4 && !r2(t4, n3[0], "ALPH")) {
               i3 = [i3], g4.na = [g4.na], g4.P = [g4.P], g4.Sa = [g4.Sa];
               t: {
-                _3 = t4, y5 = n3, w4 = i3;
+                _3 = t4, y4 = n3, w4 = i3;
                 var k3 = g4.gb;
                 A4 = g4.na, x3 = g4.P, S3 = g4.Sa;
-                P3 = 22, e2(null != _3), e2(null != w4), L4 = y5[0];
+                P3 = 22, e2(null != _3), e2(null != w4), L4 = y4[0];
                 var F3 = w4[0];
                 for (e2(null != A4), e2(null != S3), A4[0] = null, x3[0] = null, S3[0] = 0; ; ) {
-                  if (y5[0] = L4, w4[0] = F3, 8 > F3) {
-                    y5 = 7;
+                  if (y4[0] = L4, w4[0] = F3, 8 > F3) {
+                    y4 = 7;
                     break t;
                   }
                   var I3 = j2(_3, L4 + 4);
                   if (4294967286 < I3) {
-                    y5 = 3;
+                    y4 = 3;
                     break t;
                   }
                   var O3 = 8 + I3 + 1 & -2;
                   if (P3 += O3, 0 < k3 && P3 > k3) {
-                    y5 = 3;
+                    y4 = 3;
                     break t;
                   }
                   if (!r2(_3, L4, "VP8 ") || !r2(_3, L4, "VP8L")) {
-                    y5 = 0;
+                    y4 = 0;
                     break t;
                   }
                   if (F3[0] < O3) {
-                    y5 = 7;
+                    y4 = 7;
                     break t;
                   }
                   r2(_3, L4, "ALPH") || (A4[0] = _3, x3[0] = L4 + 8, S3[0] = I3), L4 += O3, F3 -= O3;
                 }
               }
-              if (i3 = i3[0], g4.na = g4.na[0], g4.P = g4.P[0], g4.Sa = g4.Sa[0], 0 != y5)
+              if (i3 = i3[0], g4.na = g4.na[0], g4.P = g4.P[0], g4.Sa = g4.Sa[0], 0 != y4)
                 break;
             }
             i3 = [i3], g4.Ja = [g4.Ja], g4.xa = [g4.xa];
             t:
-              if (k3 = t4, y5 = n3, w4 = i3, A4 = g4.gb[0], x3 = g4.Ja, S3 = g4.xa, _3 = y5[0], L4 = !r2(k3, _3, "VP8 "), P3 = !r2(k3, _3, "VP8L"), e2(null != k3), e2(null != w4), e2(null != x3), e2(null != S3), 8 > w4[0])
-                y5 = 7;
+              if (k3 = t4, y4 = n3, w4 = i3, A4 = g4.gb[0], x3 = g4.Ja, S3 = g4.xa, _3 = y4[0], L4 = !r2(k3, _3, "VP8 "), P3 = !r2(k3, _3, "VP8L"), e2(null != k3), e2(null != w4), e2(null != x3), e2(null != S3), 8 > w4[0])
+                y4 = 7;
               else {
                 if (L4 || P3) {
                   if (k3 = j2(k3, _3 + 4), 12 <= A4 && k3 > A4 - 12) {
-                    y5 = 3;
+                    y4 = 3;
                     break t;
                   }
                   if (p4 && k3 > w4[0] - 8) {
-                    y5 = 7;
+                    y4 = 7;
                     break t;
                   }
-                  x3[0] = k3, y5[0] += 8, w4[0] -= 8, S3[0] = P3;
+                  x3[0] = k3, y4[0] += 8, w4[0] -= 8, S3[0] = P3;
                 } else
                   S3[0] = 5 <= w4[0] && 47 == k3[_3 + 0] && !(k3[_3 + 4] >> 5), x3[0] = w4[0];
-                y5 = 0;
+                y4 = 0;
               }
-            if (i3 = i3[0], g4.Ja = g4.Ja[0], g4.xa = g4.xa[0], n3 = n3[0], 0 != y5)
+            if (i3 = i3[0], g4.Ja = g4.Ja[0], g4.xa = g4.xa[0], n3 = n3[0], 0 != y4)
               break;
             if (4294967286 < g4.Ja)
               return 3;
-            if (null == u4 || b4 || (u4[0] = g4.xa ? 2 : 1), c4 = [c4], m5 = [m5], g4.xa) {
+            if (null == u4 || b4 || (u4[0] = g4.xa ? 2 : 1), c4 = [c4], m4 = [m4], g4.xa) {
               if (5 > i3) {
-                y5 = 7;
+                y4 = 7;
                 break;
               }
-              u4 = c4, p4 = m5, b4 = s3, null == t4 || 5 > i3 ? t4 = 0 : 5 <= i3 && 47 == t4[n3 + 0] && !(t4[n3 + 4] >> 5) ? (w4 = [0], k3 = [0], A4 = [0], v3(x3 = new N3(), t4, n3, i3), gt2(x3, w4, k3, A4) ? (null != u4 && (u4[0] = w4[0]), null != p4 && (p4[0] = k3[0]), null != b4 && (b4[0] = A4[0]), t4 = 1) : t4 = 0) : t4 = 0;
+              u4 = c4, p4 = m4, b4 = s3, null == t4 || 5 > i3 ? t4 = 0 : 5 <= i3 && 47 == t4[n3 + 0] && !(t4[n3 + 4] >> 5) ? (w4 = [0], k3 = [0], A4 = [0], v3(x3 = new N3(), t4, n3, i3), gt2(x3, w4, k3, A4) ? (null != u4 && (u4[0] = w4[0]), null != p4 && (p4[0] = k3[0]), null != b4 && (b4[0] = A4[0]), t4 = 1) : t4 = 0) : t4 = 0;
             } else {
               if (10 > i3) {
-                y5 = 7;
+                y4 = 7;
                 break;
               }
-              u4 = m5, null == t4 || 10 > i3 || !Xt2(t4, n3 + 3, i3 - 3) ? t4 = 0 : (p4 = t4[n3 + 0] | t4[n3 + 1] << 8 | t4[n3 + 2] << 16, b4 = 16383 & (t4[n3 + 7] << 8 | t4[n3 + 6]), t4 = 16383 & (t4[n3 + 9] << 8 | t4[n3 + 8]), 1 & p4 || 3 < (p4 >> 1 & 7) || !(p4 >> 4 & 1) || p4 >> 5 >= g4.Ja || !b4 || !t4 ? t4 = 0 : (c4 && (c4[0] = b4), u4 && (u4[0] = t4), t4 = 1));
+              u4 = m4, null == t4 || 10 > i3 || !Xt2(t4, n3 + 3, i3 - 3) ? t4 = 0 : (p4 = t4[n3 + 0] | t4[n3 + 1] << 8 | t4[n3 + 2] << 16, b4 = 16383 & (t4[n3 + 7] << 8 | t4[n3 + 6]), t4 = 16383 & (t4[n3 + 9] << 8 | t4[n3 + 8]), 1 & p4 || 3 < (p4 >> 1 & 7) || !(p4 >> 4 & 1) || p4 >> 5 >= g4.Ja || !b4 || !t4 ? t4 = 0 : (c4 && (c4[0] = b4), u4 && (u4[0] = t4), t4 = 1));
             }
             if (!t4)
               return 3;
-            if (c4 = c4[0], m5 = m5[0], d4 && (l4[0] != c4 || f4[0] != m5))
+            if (c4 = c4[0], m4 = m4[0], d4 && (l4[0] != c4 || f4[0] != m4))
               return 3;
             null != h4 && (h4[0] = g4, h4.offset = n3 - h4.w, e2(4294967286 > n3 - h4.w), e2(h4.offset == h4.ha - i3));
             break;
           }
-          return 0 == y5 || 7 == y5 && d4 && null == h4 ? (null != s3 && (s3[0] |= null != g4.na && 0 < g4.na.length), null != a3 && (a3[0] = c4), null != o3 && (o3[0] = m5), 0) : y5;
+          return 0 == y4 || 7 == y4 && d4 && null == h4 ? (null != s3 && (s3[0] |= null != g4.na && 0 < g4.na.length), null != a3 && (a3[0] = c4), null != o3 && (o3[0] = m4), 0) : y4;
         }
         function qr(t4, e3, r3) {
           var n3 = e3.width, i3 = e3.height, a3 = 0, o3 = 0, s3 = n3, c4 = i3;
@@ -32474,7 +32696,7 @@ var require_jspdf_node_min = __commonJS({
         return (t3[e3 + 0] << 0 | t3[e3 + 1] << 8 | t3[e3 + 2] << 16 | t3[e3 + 3] << 24) >>> 0;
       }
       new c2();
-      var f2 = [0], d2 = [0], p2 = [], g2 = new c2(), m3 = t2, v2 = function(t3, e3) {
+      var f2 = [0], d2 = [0], p2 = [], g2 = new c2(), m2 = t2, v2 = function(t3, e3) {
         var r3 = {}, n3 = 0, i3 = false, a3 = 0, o3 = 0;
         if (r3.frames = [], !/** @license
            * Copyright (c) 2017 Dominik Homberger
@@ -32524,22 +32746,22 @@ var require_jspdf_node_min = __commonJS({
                 g3 += 2;
                 break;
               case "ANMF":
-                var m4, v3;
-                (v3 = r3.frames[n3] = {}).offset_x = 2 * h2(t3, e3), e3 += 3, v3.offset_y = 2 * h2(t3, e3), e3 += 3, v3.width = 1 + h2(t3, e3), e3 += 3, v3.height = 1 + h2(t3, e3), e3 += 3, v3.duration = h2(t3, e3), e3 += 3, m4 = t3[e3++], v3.dispose = 1 & m4, v3.blend = m4 >> 1 & 1;
+                var m3, v3;
+                (v3 = r3.frames[n3] = {}).offset_x = 2 * h2(t3, e3), e3 += 3, v3.offset_y = 2 * h2(t3, e3), e3 += 3, v3.width = 1 + h2(t3, e3), e3 += 3, v3.height = 1 + h2(t3, e3), e3 += 3, v3.duration = h2(t3, e3), e3 += 3, m3 = t3[e3++], v3.dispose = 1 & m3, v3.blend = m3 >> 1 & 1;
             }
             "ANMF" != f3 && (e3 += p3);
           }
           return r3;
         }
-      }(m3, 0);
-      v2.response = m3, v2.rgbaoutput = true, v2.dataurl = false;
-      var b2 = v2.header ? v2.header : null, y3 = v2.frames ? v2.frames : null;
+      }(m2, 0);
+      v2.response = m2, v2.rgbaoutput = true, v2.dataurl = false;
+      var b2 = v2.header ? v2.header : null, y2 = v2.frames ? v2.frames : null;
       if (b2) {
         b2.loop_counter = b2.loop_count, f2 = [b2.canvas_height], d2 = [b2.canvas_width];
-        for (var w2 = 0; w2 < y3.length && 0 != y3[w2].blend; w2++)
+        for (var w2 = 0; w2 < y2.length && 0 != y2[w2].blend; w2++)
           ;
       }
-      var N2 = y3[0], L2 = g2.WebPDecodeRGBA(m3, N2.src_off, N2.src_size, d2, f2);
+      var N2 = y2[0], L2 = g2.WebPDecodeRGBA(m2, N2.src_off, N2.src_size, d2, f2);
       N2.rgba = L2, N2.imgwidth = d2[0], N2.imgheight = f2[0];
       for (var A2 = 0; A2 < d2[0] * f2[0] * 4; A2++)
         p2[A2] = L2[A2];
@@ -32570,8 +32792,8 @@ var require_jspdf_node_min = __commonJS({
           else {
             for (var d2, p2 = u3.length, g2 = []; d2 < p2; d2 += 1)
               g2[d2] = u3[d2](i3, r2, a3);
-            var m3 = f2(g2.concat());
-            c3.set(g2[m3], o3 + h3);
+            var m2 = f2(g2.concat());
+            c3.set(g2[m2], o3 + h3);
           }
           a3 = i3;
         }
@@ -32619,25 +32841,25 @@ var require_jspdf_node_min = __commonJS({
         return e3.indexOf(Math.min.apply(null, e3));
       };
       t2.processPNG = function(r2, i3, a3, o3) {
-        var s3, c3, u3, h3, l3, f3, d2, p2, g2, m3, v2, b2, y3, w2, N2, L2 = this.decode.FLATE_DECODE, A2 = "";
+        var s3, c3, u3, h3, l3, f3, d2, p2, g2, m2, v2, b2, y2, w2, N2, L2 = this.decode.FLATE_DECODE, A2 = "";
         if (this.__addimage__.isArrayBuffer(r2) && (r2 = new Uint8Array(r2)), this.__addimage__.isArrayBufferView(r2)) {
           if (r2 = (u3 = new Wt(r2)).imgData, c3 = u3.bits, s3 = u3.colorSpace, l3 = u3.colors, -1 !== [4, 6].indexOf(u3.colorType)) {
             if (8 === u3.bits) {
-              g2 = (p2 = 32 == u3.pixelBitlength ? new Uint32Array(u3.decodePixels().buffer) : 16 == u3.pixelBitlength ? new Uint16Array(u3.decodePixels().buffer) : new Uint8Array(u3.decodePixels().buffer)).length, v2 = new Uint8Array(g2 * u3.colors), m3 = new Uint8Array(g2);
+              g2 = (p2 = 32 == u3.pixelBitlength ? new Uint32Array(u3.decodePixels().buffer) : 16 == u3.pixelBitlength ? new Uint16Array(u3.decodePixels().buffer) : new Uint8Array(u3.decodePixels().buffer)).length, v2 = new Uint8Array(g2 * u3.colors), m2 = new Uint8Array(g2);
               var x2, S2 = u3.pixelBitlength - u3.bits;
               for (w2 = 0, N2 = 0; w2 < g2; w2++) {
-                for (y3 = p2[w2], x2 = 0; x2 < S2; )
-                  v2[N2++] = y3 >>> x2 & 255, x2 += u3.bits;
-                m3[w2] = y3 >>> x2 & 255;
+                for (y2 = p2[w2], x2 = 0; x2 < S2; )
+                  v2[N2++] = y2 >>> x2 & 255, x2 += u3.bits;
+                m2[w2] = y2 >>> x2 & 255;
               }
             }
             if (16 === u3.bits) {
-              g2 = (p2 = new Uint32Array(u3.decodePixels().buffer)).length, v2 = new Uint8Array(g2 * (32 / u3.pixelBitlength) * u3.colors), m3 = new Uint8Array(g2 * (32 / u3.pixelBitlength)), b2 = u3.colors > 1, w2 = 0, N2 = 0;
+              g2 = (p2 = new Uint32Array(u3.decodePixels().buffer)).length, v2 = new Uint8Array(g2 * (32 / u3.pixelBitlength) * u3.colors), m2 = new Uint8Array(g2 * (32 / u3.pixelBitlength)), b2 = u3.colors > 1, w2 = 0, N2 = 0;
               for (var _2 = 0; w2 < g2; )
-                y3 = p2[w2++], v2[N2++] = y3 >>> 0 & 255, b2 && (v2[N2++] = y3 >>> 16 & 255, y3 = p2[w2++], v2[N2++] = y3 >>> 0 & 255), m3[_2++] = y3 >>> 16 & 255;
+                y2 = p2[w2++], v2[N2++] = y2 >>> 0 & 255, b2 && (v2[N2++] = y2 >>> 16 & 255, y2 = p2[w2++], v2[N2++] = y2 >>> 0 & 255), m2[_2++] = y2 >>> 16 & 255;
               c3 = 8;
             }
-            o3 !== t2.image_compression.NONE && e2() ? (r2 = n2(v2, u3.width * u3.colors, u3.colors, o3), d2 = n2(m3, u3.width, 1, o3)) : (r2 = v2, d2 = m3, L2 = void 0);
+            o3 !== t2.image_compression.NONE && e2() ? (r2 = n2(v2, u3.width * u3.colors, u3.colors, o3), d2 = n2(m2, u3.width, 1, o3)) : (r2 = v2, d2 = m2, L2 = void 0);
           }
           if (3 === u3.colorType && (s3 = this.color_spaces.INDEXED, f3 = u3.palette, u3.transparency.indexed)) {
             var P2 = u3.transparency.indexed, k2 = 0;
@@ -32646,9 +32868,9 @@ var require_jspdf_node_min = __commonJS({
             if ((k2 /= 255) === g2 - 1 && -1 !== P2.indexOf(0))
               h3 = [P2.indexOf(0)];
             else if (k2 !== g2) {
-              for (p2 = u3.decodePixels(), m3 = new Uint8Array(p2.length), w2 = 0, g2 = p2.length; w2 < g2; w2++)
-                m3[w2] = P2[p2[w2]];
-              d2 = n2(m3, u3.width, 1);
+              for (p2 = u3.decodePixels(), m2 = new Uint8Array(p2.length), w2 = 0, g2 = p2.length; w2 < g2; w2++)
+                m2[w2] = P2[p2[w2]];
+              d2 = n2(m2, u3.width, 1);
             }
           }
           var F2 = function(e3) {
@@ -32827,10 +33049,10 @@ var require_jspdf_node_min = __commonJS({
      * ====================================================================
      */
     Rt = I.API, Tt = Rt.getCharWidthsArray = function(t2, e2) {
-      var r2, n2, i2 = (e2 = e2 || {}).font || this.internal.getFont(), a2 = e2.fontSize || this.internal.getFontSize(), o2 = e2.charSpace || this.internal.getCharSpace(), s2 = e2.widths ? e2.widths : i2.metadata.Unicode.widths, c2 = s2.fof ? s2.fof : 1, u2 = e2.kerning ? e2.kerning : i2.metadata.Unicode.kerning, h2 = u2.fof ? u2.fof : 1, l2 = false !== e2.doKerning, f2 = 0, d2 = t2.length, p2 = 0, g2 = s2[0] || c2, m3 = [];
+      var r2, n2, i2 = (e2 = e2 || {}).font || this.internal.getFont(), a2 = e2.fontSize || this.internal.getFontSize(), o2 = e2.charSpace || this.internal.getCharSpace(), s2 = e2.widths ? e2.widths : i2.metadata.Unicode.widths, c2 = s2.fof ? s2.fof : 1, u2 = e2.kerning ? e2.kerning : i2.metadata.Unicode.kerning, h2 = u2.fof ? u2.fof : 1, l2 = false !== e2.doKerning, f2 = 0, d2 = t2.length, p2 = 0, g2 = s2[0] || c2, m2 = [];
       for (r2 = 0; r2 < d2; r2++)
-        n2 = t2.charCodeAt(r2), "function" == typeof i2.metadata.widthOfString ? m3.push((i2.metadata.widthOfGlyph(i2.metadata.characterToGlyph(n2)) + o2 * (1e3 / a2) || 0) / 1e3) : (f2 = l2 && "object" == typeof u2[n2] && !isNaN(parseInt(u2[n2][p2], 10)) ? u2[n2][p2] / h2 : 0, m3.push((s2[n2] || g2) / c2 + f2)), p2 = n2;
-      return m3;
+        n2 = t2.charCodeAt(r2), "function" == typeof i2.metadata.widthOfString ? m2.push((i2.metadata.widthOfGlyph(i2.metadata.characterToGlyph(n2)) + o2 * (1e3 / a2) || 0) / 1e3) : (f2 = l2 && "object" == typeof u2[n2] && !isNaN(parseInt(u2[n2][p2], 10)) ? u2[n2][p2] / h2 : 0, m2.push((s2[n2] || g2) / c2 + f2)), p2 = n2;
+      return m2;
     }, zt = Rt.getStringUnitWidth = function(t2, e2) {
       var r2 = (e2 = e2 || {}).fontSize || this.internal.getFontSize(), n2 = e2.font || this.internal.getFont(), i2 = e2.charSpace || this.internal.getCharSpace();
       return Rt.processArabic && (t2 = Rt.processArabic(t2)), "function" == typeof n2.metadata.widthOfString ? n2.metadata.widthOfString(t2, r2, i2) / r2 : Tt.apply(this, arguments).reduce(function(t3, e3) {
@@ -32846,7 +33068,7 @@ var require_jspdf_node_min = __commonJS({
       return c2 !== a2 && i2.push(t2.slice(c2, a2)), i2;
     }, Ht = function(t2, e2, r2) {
       r2 || (r2 = {});
-      var n2, i2, a2, o2, s2, c2, u2, h2 = [], l2 = [h2], f2 = r2.textIndent || 0, d2 = 0, p2 = 0, g2 = t2.split(" "), m3 = Tt.apply(this, [" ", r2])[0];
+      var n2, i2, a2, o2, s2, c2, u2, h2 = [], l2 = [h2], f2 = r2.textIndent || 0, d2 = 0, p2 = 0, g2 = t2.split(" "), m2 = Tt.apply(this, [" ", r2])[0];
       if (c2 = -1 === r2.lineIndent ? g2[0].length + 2 : r2.lineIndent || 0) {
         var v2 = Array(c2).join(" "), b2 = [];
         g2.map(function(t3) {
@@ -32856,10 +33078,10 @@ var require_jspdf_node_min = __commonJS({
         }), g2 = b2, c2 = zt.apply(this, [v2, r2]);
       }
       for (a2 = 0, o2 = g2.length; a2 < o2; a2++) {
-        var y3 = 0;
-        if (n2 = g2[a2], c2 && "\n" == n2[0] && (n2 = n2.substr(1), y3 = 1), f2 + d2 + (p2 = (i2 = Tt.apply(this, [n2, r2])).reduce(function(t3, e3) {
+        var y2 = 0;
+        if (n2 = g2[a2], c2 && "\n" == n2[0] && (n2 = n2.substr(1), y2 = 1), f2 + d2 + (p2 = (i2 = Tt.apply(this, [n2, r2])).reduce(function(t3, e3) {
           return t3 + e3;
-        }, 0)) > e2 || y3) {
+        }, 0)) > e2 || y2) {
           if (p2 > e2) {
             for (s2 = Ut.apply(this, [n2, i2, e2 - (f2 + d2), e2]), h2.push(s2.shift()), h2 = [s2.pop()]; s2.length; )
               l2.push([s2.shift()]);
@@ -32868,9 +33090,9 @@ var require_jspdf_node_min = __commonJS({
             }, 0);
           } else
             h2 = [n2];
-          l2.push(h2), f2 = p2 + c2, d2 = m3;
+          l2.push(h2), f2 = p2 + c2, d2 = m2;
         } else
-          h2.push(n2), f2 += d2 + p2, d2 = m3;
+          h2.push(n2), f2 += d2 + p2, d2 = m2;
       }
       return u2 = c2 ? function(t3, e3) {
         return (e3 ? v2 : "") + t3.join(" ");
@@ -33177,10 +33399,10 @@ var require_jspdf_node_min = __commonJS({
           return { text: n3, x: i3, y: a2, options: o2, mutex: s2 };
         for (p2 = n3, l2 = u2, Array.isArray(n3) && (p2 = n3[0]), d2 = 0; d2 < p2.length; d2 += 1)
           h2[l2].metadata.hasOwnProperty("cmap") && (e3 = h2[l2].metadata.cmap.unicode.codeMap[p2[d2].charCodeAt(0)]), e3 || p2[d2].charCodeAt(0) < 256 && h2[l2].metadata.hasOwnProperty("Unicode") ? f2 += p2[d2] : f2 += "";
-        var m3 = "";
-        return parseInt(l2.slice(1)) < 14 || "WinAnsiEncoding" === g2 ? m3 = c2(f2, l2).split("").map(function(t4) {
+        var m2 = "";
+        return parseInt(l2.slice(1)) < 14 || "WinAnsiEncoding" === g2 ? m2 = c2(f2, l2).split("").map(function(t4) {
           return t4.charCodeAt(0).toString(16);
-        }).join("") : "Identity-H" === g2 && (m3 = r2(f2, h2[l2])), s2.isHex = true, { text: m3, x: i3, y: a2, options: o2, mutex: s2 };
+        }).join("") : "Identity-H" === g2 && (m2 = r2(f2, h2[l2])), s2.isHex = true, { text: m2, x: i3, y: a2, options: o2, mutex: s2 };
       };
       e2.events.push(["postProcessText", function(t3) {
         var e3 = t3.text || "", r3 = [], n3 = { text: e3, x: t3.x, y: t3.y, options: t3.options, mutex: t3.mutex };
@@ -33217,12 +33439,12 @@ var require_jspdf_node_min = __commonJS({
      */
     function(t2) {
       t2.__bidiEngine__ = t2.prototype.__bidiEngine__ = function(t3) {
-        var r3, n2, i2, a2, o2, s2, c2, u2 = e2, h2 = [[0, 3, 0, 1, 0, 0, 0], [0, 3, 0, 1, 2, 2, 0], [0, 3, 0, 17, 2, 0, 1], [0, 3, 5, 5, 4, 1, 0], [0, 3, 21, 21, 4, 0, 1], [0, 3, 5, 5, 4, 2, 0]], l2 = [[2, 0, 1, 1, 0, 1, 0], [2, 0, 1, 1, 0, 2, 0], [2, 0, 2, 1, 3, 2, 0], [2, 0, 2, 33, 3, 1, 1]], f2 = { L: 0, R: 1, EN: 2, AN: 3, N: 4, B: 5, S: 6 }, d2 = { 0: 0, 5: 1, 6: 2, 7: 3, 32: 4, 251: 5, 254: 6, 255: 7 }, p2 = ["(", ")", "(", "<", ">", "<", "[", "]", "[", "{", "}", "{", "\xAB", "\xBB", "\xAB", "\u2039", "\u203A", "\u2039", "\u2045", "\u2046", "\u2045", "\u207D", "\u207E", "\u207D", "\u208D", "\u208E", "\u208D", "\u2264", "\u2265", "\u2264", "\u2329", "\u232A", "\u2329", "\uFE59", "\uFE5A", "\uFE59", "\uFE5B", "\uFE5C", "\uFE5B", "\uFE5D", "\uFE5E", "\uFE5D", "\uFE64", "\uFE65", "\uFE64"], g2 = new RegExp(/^([1-4|9]|1[0-9]|2[0-9]|3[0168]|4[04589]|5[012]|7[78]|159|16[0-9]|17[0-2]|21[569]|22[03489]|250)$/), m3 = false, v2 = 0;
+        var r3, n2, i2, a2, o2, s2, c2, u2 = e2, h2 = [[0, 3, 0, 1, 0, 0, 0], [0, 3, 0, 1, 2, 2, 0], [0, 3, 0, 17, 2, 0, 1], [0, 3, 5, 5, 4, 1, 0], [0, 3, 21, 21, 4, 0, 1], [0, 3, 5, 5, 4, 2, 0]], l2 = [[2, 0, 1, 1, 0, 1, 0], [2, 0, 1, 1, 0, 2, 0], [2, 0, 2, 1, 3, 2, 0], [2, 0, 2, 33, 3, 1, 1]], f2 = { L: 0, R: 1, EN: 2, AN: 3, N: 4, B: 5, S: 6 }, d2 = { 0: 0, 5: 1, 6: 2, 7: 3, 32: 4, 251: 5, 254: 6, 255: 7 }, p2 = ["(", ")", "(", "<", ">", "<", "[", "]", "[", "{", "}", "{", "\xAB", "\xBB", "\xAB", "\u2039", "\u203A", "\u2039", "\u2045", "\u2046", "\u2045", "\u207D", "\u207E", "\u207D", "\u208D", "\u208E", "\u208D", "\u2264", "\u2265", "\u2264", "\u2329", "\u232A", "\u2329", "\uFE59", "\uFE5A", "\uFE59", "\uFE5B", "\uFE5C", "\uFE5B", "\uFE5D", "\uFE5E", "\uFE5D", "\uFE64", "\uFE65", "\uFE64"], g2 = new RegExp(/^([1-4|9]|1[0-9]|2[0-9]|3[0168]|4[04589]|5[012]|7[78]|159|16[0-9]|17[0-2]|21[569]|22[03489]|250)$/), m2 = false, v2 = 0;
         this.__bidiEngine__ = {};
         var b2 = function(t4) {
           var e3 = t4.charCodeAt(), r4 = e3 >> 8, n3 = d2[r4];
           return void 0 !== n3 ? u2[256 * n3 + (255 & e3)] : 252 === r4 || 253 === r4 ? "AL" : g2.test(r4) ? "L" : 8 === r4 ? "R" : "N";
-        }, y3 = function(t4) {
+        }, y2 = function(t4) {
           for (var e3, r4 = 0; r4 < t4.length; r4++) {
             if ("L" === (e3 = b2(t4.charAt(r4))))
               return false;
@@ -33235,22 +33457,22 @@ var require_jspdf_node_min = __commonJS({
           switch (f3) {
             case "L":
             case "R":
-              m3 = false;
+              m2 = false;
               break;
             case "N":
             case "AN":
               break;
             case "EN":
-              m3 && (f3 = "AN");
+              m2 && (f3 = "AN");
               break;
             case "AL":
-              m3 = true, f3 = "R";
+              m2 = true, f3 = "R";
               break;
             case "WS":
               f3 = "N";
               break;
             case "CS":
-              s3 < 1 || s3 + 1 >= e3.length || "EN" !== (c3 = o3[s3 - 1]) && "AN" !== c3 || "EN" !== (u3 = e3[s3 + 1]) && "AN" !== u3 ? f3 = "N" : m3 && (u3 = "AN"), f3 = u3 === c3 ? u3 : "N";
+              s3 < 1 || s3 + 1 >= e3.length || "EN" !== (c3 = o3[s3 - 1]) && "AN" !== c3 || "EN" !== (u3 = e3[s3 + 1]) && "AN" !== u3 ? f3 = "N" : m2 && (u3 = "AN"), f3 = u3 === c3 ? u3 : "N";
               break;
             case "ES":
               f3 = "EN" === (c3 = s3 > 0 ? o3[s3 - 1] : "B") && s3 + 1 < e3.length && "EN" === e3[s3 + 1] ? "EN" : "N";
@@ -33260,7 +33482,7 @@ var require_jspdf_node_min = __commonJS({
                 f3 = "EN";
                 break;
               }
-              if (m3) {
+              if (m2) {
                 f3 = "N";
                 break;
               }
@@ -33283,7 +33505,7 @@ var require_jspdf_node_min = __commonJS({
               f3 = s3 < 1 || "B" === (c3 = e3[s3 - 1]) ? "N" : o3[s3 - 1];
               break;
             case "B":
-              m3 = false, r3 = true, f3 = v2;
+              m2 = false, r3 = true, f3 = v2;
               break;
             case "S":
               n2 = true, f3 = "N";
@@ -33293,7 +33515,7 @@ var require_jspdf_node_min = __commonJS({
             case "LRO":
             case "RLO":
             case "PDF":
-              m3 = false;
+              m2 = false;
               break;
             case "BN":
               f3 = "N";
@@ -33303,11 +33525,11 @@ var require_jspdf_node_min = __commonJS({
           var n3 = t4.split("");
           return r4 && L2(n3, r4, { hiLevel: v2 }), n3.reverse(), e3 && e3.reverse(), n3.join("");
         }, L2 = function(t4, e3, i3) {
-          var a3, o3, s3, c3, u3, d3 = -1, p3 = t4.length, g3 = 0, y4 = [], N3 = v2 ? l2 : h2, L3 = [];
-          for (m3 = false, r3 = false, n2 = false, o3 = 0; o3 < p3; o3++)
+          var a3, o3, s3, c3, u3, d3 = -1, p3 = t4.length, g3 = 0, y3 = [], N3 = v2 ? l2 : h2, L3 = [];
+          for (m2 = false, r3 = false, n2 = false, o3 = 0; o3 < p3; o3++)
             L3[o3] = b2(t4[o3]);
           for (s3 = 0; s3 < p3; s3++) {
-            if (u3 = g3, y4[s3] = w2(t4, L3, y4, s3), a3 = 240 & (g3 = N3[u3][f2[y4[s3]]]), g3 &= 15, e3[s3] = c3 = N3[g3][5], a3 > 0)
+            if (u3 = g3, y3[s3] = w2(t4, L3, y3, s3), a3 = 240 & (g3 = N3[u3][f2[y3[s3]]]), g3 &= 15, e3[s3] = c3 = N3[g3][5], a3 > 0)
               if (16 === a3) {
                 for (o3 = d3; o3 < s3; o3++)
                   e3[o3] = 1;
@@ -33359,7 +33581,7 @@ var require_jspdf_node_min = __commonJS({
             if (e4)
               for (var r5 = 0; r5 < t5.length; r5++)
                 e4[r5] = r5;
-            void 0 === a2 && (a2 = y3(t5)), void 0 === s2 && (s2 = y3(t5));
+            void 0 === a2 && (a2 = y2(t5)), void 0 === s2 && (s2 = y2(t5));
           }(t4, e3), i2 || !o2 || s2)
             if (i2 && o2 && a2 ^ s2)
               v2 = a2 ? 1 : 0, t4 = N2(t4, e3, r4);
@@ -33549,7 +33771,7 @@ var require_jspdf_node_min = __commonJS({
     }();
     var re = function() {
       function t2(t3, e2) {
-        var r2, n2, i2, a2, o2, s2, c2, u2, h2, l2, f2, d2, p2, g2, m3, v2, b2;
+        var r2, n2, i2, a2, o2, s2, c2, u2, h2, l2, f2, d2, p2, g2, m2, v2, b2;
         switch (this.platformID = t3.readUInt16(), this.encodingID = t3.readShort(), this.offset = e2 + t3.readInt(), h2 = t3.pos, t3.pos = this.offset, this.format = t3.readUInt16(), this.length = t3.readUInt16(), this.language = t3.readUInt16(), this.isUnicode = 3 === this.platformID && 1 === this.encodingID && 4 === this.format || 0 === this.platformID && 4 === this.format, this.codeMap = {}, this.format) {
           case 0:
             for (s2 = 0; s2 < 256; ++s2)
@@ -33581,14 +33803,14 @@ var require_jspdf_node_min = __commonJS({
               for (r3 = [], s2 = e3 = 0; 0 <= n2 ? e3 < n2 : e3 > n2; s2 = 0 <= n2 ? ++e3 : --e3)
                 r3.push(t3.readUInt16());
               return r3;
-            }(), s2 = m3 = 0, b2 = i2.length; m3 < b2; s2 = ++m3)
+            }(), s2 = m2 = 0, b2 = i2.length; m2 < b2; s2 = ++m2)
               for (g2 = i2[s2], r2 = v2 = d2 = p2[s2]; d2 <= g2 ? v2 <= g2 : v2 >= g2; r2 = d2 <= g2 ? ++v2 : --v2)
                 0 === u2[s2] ? a2 = r2 + c2[s2] : 0 !== (a2 = o2[u2[s2] / 2 + (r2 - d2) - (l2 - s2)] || 0) && (a2 += c2[s2]), this.codeMap[r2] = 65535 & a2;
         }
         t3.pos = h2;
       }
       return t2.encode = function(t3, e2) {
-        var r2, n2, i2, a2, o2, s2, c2, u2, h2, l2, f2, d2, p2, g2, m3, v2, b2, y3, w2, N2, L2, A2, x2, S2, _2, P2, k2, F2, I2, C2, j2, O2, B2, q2, M2, E2, D2, R2, T2, z2, U2, H2, W2, V2, G2, Y2;
+        var r2, n2, i2, a2, o2, s2, c2, u2, h2, l2, f2, d2, p2, g2, m2, v2, b2, y2, w2, N2, L2, A2, x2, S2, _2, P2, k2, F2, I2, C2, j2, O2, B2, q2, M2, E2, D2, R2, T2, z2, U2, H2, W2, V2, G2, Y2;
         switch (F2 = new Zt(), a2 = Object.keys(t3).sort(function(t4, e3) {
           return t4 - e3;
         }), e2) {
@@ -33602,9 +33824,9 @@ var require_jspdf_node_min = __commonJS({
               null == v2[W2 = t3[n2 = a2[I2]]] && (v2[W2] = ++p2), i2[n2] = { old: t3[n2], new: v2[t3[n2]] }, g2[n2] = v2[t3[n2]];
             return F2.writeUInt16(1), F2.writeUInt16(0), F2.writeUInt32(12), F2.writeUInt16(0), F2.writeUInt16(262), F2.writeUInt16(0), F2.write(g2), { charMap: i2, subtable: F2.data, maxGlyphID: p2 + 1 };
           case "unicode":
-            for (P2 = [], h2 = [], b2 = 0, v2 = {}, r2 = {}, m3 = c2 = null, C2 = 0, q2 = a2.length; C2 < q2; C2++)
-              null == v2[w2 = t3[n2 = a2[C2]]] && (v2[w2] = ++b2), r2[n2] = { old: w2, new: v2[w2] }, o2 = v2[w2] - n2, null != m3 && o2 === c2 || (m3 && h2.push(m3), P2.push(n2), c2 = o2), m3 = n2;
-            for (m3 && h2.push(m3), h2.push(65535), P2.push(65535), S2 = 2 * (x2 = P2.length), A2 = 2 * Math.pow(Math.log(x2) / Math.LN2, 2), l2 = Math.log(A2 / 2) / Math.LN2, L2 = 2 * x2 - A2, s2 = [], N2 = [], f2 = [], d2 = j2 = 0, M2 = P2.length; j2 < M2; d2 = ++j2) {
+            for (P2 = [], h2 = [], b2 = 0, v2 = {}, r2 = {}, m2 = c2 = null, C2 = 0, q2 = a2.length; C2 < q2; C2++)
+              null == v2[w2 = t3[n2 = a2[C2]]] && (v2[w2] = ++b2), r2[n2] = { old: w2, new: v2[w2] }, o2 = v2[w2] - n2, null != m2 && o2 === c2 || (m2 && h2.push(m2), P2.push(n2), c2 = o2), m2 = n2;
+            for (m2 && h2.push(m2), h2.push(65535), P2.push(65535), S2 = 2 * (x2 = P2.length), A2 = 2 * Math.pow(Math.log(x2) / Math.LN2, 2), l2 = Math.log(A2 / 2) / Math.LN2, L2 = 2 * x2 - A2, s2 = [], N2 = [], f2 = [], d2 = j2 = 0, M2 = P2.length; j2 < M2; d2 = ++j2) {
               if (_2 = P2[d2], u2 = h2[d2], 65535 === _2) {
                 s2.push(0), N2.push(0);
                 break;
@@ -33622,7 +33844,7 @@ var require_jspdf_node_min = __commonJS({
             for (V2 = 0, R2 = s2.length; V2 < R2; V2++)
               o2 = s2[V2], F2.writeUInt16(o2);
             for (G2 = 0, T2 = N2.length; G2 < T2; G2++)
-              y3 = N2[G2], F2.writeUInt16(y3);
+              y2 = N2[G2], F2.writeUInt16(y2);
             for (Y2 = 0, z2 = f2.length; Y2 < z2; Y2++)
               p2 = f2[Y2], F2.writeUInt16(p2);
             return { charMap: r2, subtable: F2.data, maxGlyphID: b2 + 1 };
@@ -33851,9 +34073,9 @@ var require_jspdf_node_min = __commonJS({
             r2 = s2[i2], n2[i2] = r2;
         return n2;
       }, t2.prototype.encode = function(t3, e2) {
-        var r2, n2, i2, a2, o2, s2, c2, u2, h2, l2, f2, d2, p2, g2, m3;
-        for (n2 in r2 = ne.encode(this.generateCmap(), "unicode"), a2 = this.glyphsFor(t3), f2 = { 0: 0 }, m3 = r2.charMap)
-          f2[(s2 = m3[n2]).old] = s2.new;
+        var r2, n2, i2, a2, o2, s2, c2, u2, h2, l2, f2, d2, p2, g2, m2;
+        for (n2 in r2 = ne.encode(this.generateCmap(), "unicode"), a2 = this.glyphsFor(t3), f2 = { 0: 0 }, m2 = r2.charMap)
+          f2[(s2 = m2[n2]).old] = s2.new;
         for (d2 in l2 = r2.maxGlyphID, a2)
           d2 in f2 || (f2[d2] = l2++);
         return u2 = function(t4) {
@@ -33903,255 +34125,12 @@ var require_jspdf_node_min = __commonJS({
   }
 });
 
-// node_modules/minimist/index.js
-var require_minimist = __commonJS({
-  "node_modules/minimist/index.js"(exports, module2) {
-    "use strict";
-    function hasKey(obj, keys) {
-      var o = obj;
-      keys.slice(0, -1).forEach(function(key3) {
-        o = o[key3] || {};
-      });
-      var key2 = keys[keys.length - 1];
-      return key2 in o;
-    }
-    function isNumber(x) {
-      if (typeof x === "number") {
-        return true;
-      }
-      if (/^0x[0-9a-f]+$/i.test(x)) {
-        return true;
-      }
-      return /^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(e[-+]?\d+)?$/.test(x);
-    }
-    function isConstructorOrProto(obj, key2) {
-      return key2 === "constructor" && typeof obj[key2] === "function" || key2 === "__proto__";
-    }
-    module2.exports = function(args2, opts) {
-      if (!opts) {
-        opts = {};
-      }
-      var flags = {
-        bools: {},
-        strings: {},
-        unknownFn: null
-      };
-      if (typeof opts.unknown === "function") {
-        flags.unknownFn = opts.unknown;
-      }
-      if (typeof opts.boolean === "boolean" && opts.boolean) {
-        flags.allBools = true;
-      } else {
-        [].concat(opts.boolean).filter(Boolean).forEach(function(key3) {
-          flags.bools[key3] = true;
-        });
-      }
-      var aliases = {};
-      function aliasIsBoolean(key3) {
-        return aliases[key3].some(function(x) {
-          return flags.bools[x];
-        });
-      }
-      Object.keys(opts.alias || {}).forEach(function(key3) {
-        aliases[key3] = [].concat(opts.alias[key3]);
-        aliases[key3].forEach(function(x) {
-          aliases[x] = [key3].concat(aliases[key3].filter(function(y2) {
-            return x !== y2;
-          }));
-        });
-      });
-      [].concat(opts.string).filter(Boolean).forEach(function(key3) {
-        flags.strings[key3] = true;
-        if (aliases[key3]) {
-          [].concat(aliases[key3]).forEach(function(k) {
-            flags.strings[k] = true;
-          });
-        }
-      });
-      var defaults = opts.default || {};
-      var argv = { _: [] };
-      function argDefined(key3, arg2) {
-        return flags.allBools && /^--[^=]+$/.test(arg2) || flags.strings[key3] || flags.bools[key3] || aliases[key3];
-      }
-      function setKey(obj, keys, value2) {
-        var o = obj;
-        for (var i2 = 0; i2 < keys.length - 1; i2++) {
-          var key3 = keys[i2];
-          if (isConstructorOrProto(o, key3)) {
-            return;
-          }
-          if (o[key3] === void 0) {
-            o[key3] = {};
-          }
-          if (o[key3] === Object.prototype || o[key3] === Number.prototype || o[key3] === String.prototype) {
-            o[key3] = {};
-          }
-          if (o[key3] === Array.prototype) {
-            o[key3] = [];
-          }
-          o = o[key3];
-        }
-        var lastKey = keys[keys.length - 1];
-        if (isConstructorOrProto(o, lastKey)) {
-          return;
-        }
-        if (o === Object.prototype || o === Number.prototype || o === String.prototype) {
-          o = {};
-        }
-        if (o === Array.prototype) {
-          o = [];
-        }
-        if (o[lastKey] === void 0 || flags.bools[lastKey] || typeof o[lastKey] === "boolean") {
-          o[lastKey] = value2;
-        } else if (Array.isArray(o[lastKey])) {
-          o[lastKey].push(value2);
-        } else {
-          o[lastKey] = [o[lastKey], value2];
-        }
-      }
-      function setArg(key3, val, arg2) {
-        if (arg2 && flags.unknownFn && !argDefined(key3, arg2)) {
-          if (flags.unknownFn(arg2) === false) {
-            return;
-          }
-        }
-        var value2 = !flags.strings[key3] && isNumber(val) ? Number(val) : val;
-        setKey(argv, key3.split("."), value2);
-        (aliases[key3] || []).forEach(function(x) {
-          setKey(argv, x.split("."), value2);
-        });
-      }
-      Object.keys(flags.bools).forEach(function(key3) {
-        setArg(key3, defaults[key3] === void 0 ? false : defaults[key3]);
-      });
-      var notFlags = [];
-      if (args2.indexOf("--") !== -1) {
-        notFlags = args2.slice(args2.indexOf("--") + 1);
-        args2 = args2.slice(0, args2.indexOf("--"));
-      }
-      for (var i = 0; i < args2.length; i++) {
-        var arg = args2[i];
-        var key2;
-        var next;
-        if (/^--.+=/.test(arg)) {
-          var m2 = arg.match(/^--([^=]+)=([\s\S]*)$/);
-          key2 = m2[1];
-          var value = m2[2];
-          if (flags.bools[key2]) {
-            value = value !== "false";
-          }
-          setArg(key2, value, arg);
-        } else if (/^--no-.+/.test(arg)) {
-          key2 = arg.match(/^--no-(.+)/)[1];
-          setArg(key2, false, arg);
-        } else if (/^--.+/.test(arg)) {
-          key2 = arg.match(/^--(.+)/)[1];
-          next = args2[i + 1];
-          if (next !== void 0 && !/^(-|--)[^-]/.test(next) && !flags.bools[key2] && !flags.allBools && (aliases[key2] ? !aliasIsBoolean(key2) : true)) {
-            setArg(key2, next, arg);
-            i += 1;
-          } else if (/^(true|false)$/.test(next)) {
-            setArg(key2, next === "true", arg);
-            i += 1;
-          } else {
-            setArg(key2, flags.strings[key2] ? "" : true, arg);
-          }
-        } else if (/^-[^-]+/.test(arg)) {
-          var letters = arg.slice(1, -1).split("");
-          var broken = false;
-          for (var j = 0; j < letters.length; j++) {
-            next = arg.slice(j + 2);
-            if (next === "-") {
-              setArg(letters[j], next, arg);
-              continue;
-            }
-            if (/[A-Za-z]/.test(letters[j]) && next[0] === "=") {
-              setArg(letters[j], next.slice(1), arg);
-              broken = true;
-              break;
-            }
-            if (/[A-Za-z]/.test(letters[j]) && /-?\d+(\.\d*)?(e-?\d+)?$/.test(next)) {
-              setArg(letters[j], next, arg);
-              broken = true;
-              break;
-            }
-            if (letters[j + 1] && letters[j + 1].match(/\W/)) {
-              setArg(letters[j], arg.slice(j + 2), arg);
-              broken = true;
-              break;
-            } else {
-              setArg(letters[j], flags.strings[letters[j]] ? "" : true, arg);
-            }
-          }
-          key2 = arg.slice(-1)[0];
-          if (!broken && key2 !== "-") {
-            if (args2[i + 1] && !/^(-|--)[^-]/.test(args2[i + 1]) && !flags.bools[key2] && (aliases[key2] ? !aliasIsBoolean(key2) : true)) {
-              setArg(key2, args2[i + 1], arg);
-              i += 1;
-            } else if (args2[i + 1] && /^(true|false)$/.test(args2[i + 1])) {
-              setArg(key2, args2[i + 1] === "true", arg);
-              i += 1;
-            } else {
-              setArg(key2, flags.strings[key2] ? "" : true, arg);
-            }
-          }
-        } else {
-          if (!flags.unknownFn || flags.unknownFn(arg) !== false) {
-            argv._.push(flags.strings._ || !isNumber(arg) ? arg : Number(arg));
-          }
-          if (opts.stopEarly) {
-            argv._.push.apply(argv._, args2.slice(i + 1));
-            break;
-          }
-        }
-      }
-      Object.keys(defaults).forEach(function(k) {
-        if (!hasKey(argv, k.split("."))) {
-          setKey(argv, k.split("."), defaults[k]);
-          (aliases[k] || []).forEach(function(x) {
-            setKey(argv, x.split("."), defaults[k]);
-          });
-        }
-      });
-      if (opts["--"]) {
-        argv["--"] = notFlags.slice();
-      } else {
-        notFlags.forEach(function(k) {
-          argv._.push(k);
-        });
-      }
-      return argv;
-    };
-  }
-});
-
 // main.ts
 var import_fs = require("fs");
-var import_jspdf = __toESM(require_jspdf_node_min());
 var import_minimist = __toESM(require_minimist());
-var args = (0, import_minimist.default)(process.argv.slice(2));
-if (args["h"] || args["help"]) {
-  console.log(
-    `Usage: chordpdf [options] [input_file] [output_file]
-Valid options:
- -h/--help  displays this help message
- -k/--key   sets the key of the output file`
-  );
-  process.exit(0);
-}
-var input;
-try {
-  input = (0, import_fs.readFileSync)(args._[0], "utf-8");
-} catch (e) {
-  console.error("Input file not found:", args._[0]);
-  process.exit(1);
-}
-if (!args._[1]) {
-  console.error("Output file required (use -h for help)");
-  process.exit(1);
-}
-var [metadataRaw, ...linesRaw] = input.split("\n#");
-var metadata = Object.fromEntries(metadataRaw.split("\n").map((v) => v.split(":").map((v2) => v2.trim())));
+
+// lib.ts
+var import_jspdf = __toESM(require_jspdf_node_min());
 var chords = [
   "A",
   "Bb",
@@ -34176,149 +34155,157 @@ var mapping = {
   7: 7
 };
 var scale = [0, 2, 4, 5, 7, 9, 10];
-var key = args["k"] ?? args["key"];
-if (key) {
-  const startingIndex = chords.indexOf(key);
-  if (startingIndex === -1) {
-    console.error("Invalid key:", key);
-    console.error("Valid keys:", chords.join(" "));
-    process.exit(1);
-  }
-  scale.forEach((v, i) => mapping[i + 1] = chords[(v + startingIndex) % 12]);
-}
-var replaceChords = (c) => c.replace(/(?<![1-7a-z#])[1-7]/g, (v) => mapping[v]);
-var lines = ("#" + linesRaw.join("\n#")).split("\n").filter((v) => v).map((v) => ({
-  type: v.startsWith("#") ? "title" : v.match(/^[ \t0-9m/|()]+$/) ? "chords" : "lyrics",
-  line: v
-})).reduce(
-  (n, v, i, a) => v.type === "lyrics" && a[i - 1]?.type === "chords" ? [...n.slice(0, -1), { type: "lyrics+chords", chords: a[i - 1].line, lyrics: v.line }] : [...n, v],
-  []
-);
-var htmlContent = lines.map((v) => {
-  if (v.type === "title") {
-    return `<div class="title">${v.line.slice(1).trim()}</div>`;
-  } else if (v.type === "chords") {
-    return `<div class="chords">${replaceChords(v.line)}</div>`;
-  } else if (v.type === "lyrics") {
-    return `<div class="lyrics">${v.line}</div>`;
-  } else if (v.type === "lyrics+chords") {
-    let chords2 = [...v.chords.matchAll(/[^ ]+/g)].map((v2) => ({ i: v2.index, c: v2[0] }));
-    let rendered = v.lyrics.split("").map((v2, i, a) => {
-      let chord = chords2.find((v3) => v3.i === i);
-      v2 = v2 === " " ? "&nbsp;" : v2;
-      if (chord) {
-        return `<span class="s">${v2}<span class="c">${replaceChords(chord.c)}</span></span>`;
-      } else {
-        return v2;
-      }
-    }).join("");
-    return '<div class="lc">' + rendered + "</div>";
-  }
-});
-var pdf = new import_jspdf.default({
-  orientation: "portrait",
-  unit: "in"
-});
-var m = {
-  left: 0.5,
-  top: 0.75,
-  bottom: 0.75,
-  right: 0.5
-};
-var y = 0;
-var drawHeaders = () => {
-  y = m.top;
-  pdf.setFontSize(30);
-  pdf.text(metadata.Title, m.left, y);
-  pdf.setFontSize(10);
-  y += 0.2;
-  pdf.text(`by ${metadata.Author}     Key ${key ?? "Numbers"} (${metadata.Key})  ${metadata.BPM} bpm`, m.left, y);
-  y += 0.4;
-};
-drawHeaders();
-var col = 0;
-var colw = 4;
-var isFirstTitle = true;
-var pageHeight = 11.5;
-var pageWidth = 8;
-lines.forEach((line) => {
-  if (y >= pageHeight - m.bottom || line.type === "title" && y + 0.3 >= pageHeight - m.bottom) {
-    if (col === 0) {
-      y = m.top + 0.6;
-      isFirstTitle = true;
-      col = 1;
-    } else {
-      y = 0;
-      pdf.addPage();
-      drawHeaders();
-      col = 0;
+function render(input2, key2) {
+  const [metadataRaw, ...linesRaw] = input2.split("\n#");
+  const metadata = Object.fromEntries(metadataRaw.split("\n").map((v) => v.split(":").map((v2) => v2.trim())));
+  if (key2) {
+    const startingIndex = chords.indexOf(key2);
+    if (startingIndex === -1) {
+      console.error("Invalid key:", key2);
+      console.error("Valid keys:", chords.join(" "));
+      process.exit(1);
     }
+    scale.forEach((v, i) => mapping[i + 1] = chords[(v + startingIndex) % 12]);
   }
-  if (line.type !== "title") {
-    isFirstTitle = false;
-  }
-  if (line.type === "title") {
-    if (!isFirstTitle) {
-      y += 0.2;
-    } else {
+  const replaceChords = (c) => c.replace(/(?<![1-7a-z#])[1-7]/g, (v) => mapping[v]);
+  const lines = ("#" + linesRaw.join("\n#")).split("\n").filter((v) => v).map((v) => ({
+    type: v.startsWith("#") ? "title" : v.match(/^[ \t0-9m/|()]+$/) ? "chords" : "lyrics",
+    line: v
+  })).reduce(
+    (n, v, i, a) => v.type === "lyrics" && a[i - 1]?.type === "chords" ? [...n.slice(0, -1), { type: "lyrics+chords", chords: a[i - 1].line, lyrics: v.line }] : [...n, v],
+    []
+  );
+  let pdf2 = new import_jspdf.default({
+    orientation: "portrait",
+    unit: "in"
+  });
+  const m = {
+    left: 0.5,
+    top: 0.75,
+    bottom: 0.75,
+    right: 0.5
+  };
+  let y = 0;
+  const drawHeaders = () => {
+    y = m.top;
+    pdf2.setFontSize(30);
+    pdf2.text(metadata.Title, m.left, y);
+    pdf2.setFontSize(10);
+    y += 0.2;
+    pdf2.text(`by ${metadata.Author}     Key ${key2 ?? "Numbers"} (${metadata.Key})  ${metadata.BPM} bpm`, m.left, y);
+    y += 0.4;
+  };
+  drawHeaders();
+  let col = 0;
+  let colw = 4;
+  let isFirstTitle = true;
+  let pageHeight = 11.5;
+  let pageWidth = 8;
+  lines.forEach((line) => {
+    if (y >= pageHeight - m.bottom || line.type === "title" && y + 0.3 >= pageHeight - m.bottom) {
+      if (col === 0) {
+        y = m.top + 0.6;
+        isFirstTitle = true;
+        col = 1;
+      } else {
+        y = 0;
+        pdf2.addPage();
+        drawHeaders();
+        col = 0;
+      }
+    }
+    if (line.type !== "title") {
       isFirstTitle = false;
     }
-    pdf.setFontSize(10);
-    pdf.setFont("helvetica", "bold");
-    const t = line.line.slice(1).trim();
-    pdf.text(t, m.left + col * colw, y);
-    y += 0.02;
-    pdf.setLineWidth(0.01);
-    pdf.line(m.left + col * colw, y, m.left + col * colw + pdf.getTextWidth(t), y);
-    y += pdf.getLineHeight() / 72;
-  } else if (line.type === "chords") {
-    pdf.setFontSize(9);
-    pdf.setFont("helvetica", "bold");
-    const t = replaceChords(line.line);
-    pdf.text(t, m.left + col * colw, y);
-    y += pdf.getLineHeight() / 72;
-  } else if (line.type === "lyrics") {
-    pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    const t = replaceChords(line.line);
-    pdf.text(t, m.left + col * colw, y);
-    y += pdf.getLineHeight() / 72;
-  } else if (line.type === "lyrics+chords") {
-    let chords2 = [...line.chords.matchAll(/[^ ]+/g)].map((v) => ({ i: v.index, c: v[0] }));
-    let curr = "";
-    let rendered = [];
-    pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    if (line.lyrics.length < line.chords.length) {
-      line.lyrics += " ".repeat(line.chords.length - line.lyrics.length);
-    }
-    line.lyrics.split("").forEach((v, i) => {
-      let chord = chords2.find((v2) => v2.i === i);
-      if (chord) {
-        rendered.push({ chord: chord.c, len: pdf.getTextWidth(curr) });
+    if (line.type === "title") {
+      if (!isFirstTitle) {
+        y += 0.2;
+      } else {
+        isFirstTitle = false;
       }
-      curr += v;
-    });
-    pdf.setFontSize(9);
-    pdf.setFont("helvetica", "bold");
-    rendered.filter((v) => v.chord).forEach(({ chord, len }) => {
-      pdf.text(replaceChords(chord), m.left + col * colw + len, y);
-    });
-    y += pdf.getLineHeight() / 72;
-    pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.text(line.lyrics, m.left + col * colw, y);
-    y += pdf.getLineHeight() / 72;
+      pdf2.setFontSize(10);
+      pdf2.setFont("helvetica", "bold");
+      const t = line.line.slice(1).trim();
+      pdf2.text(t, m.left + col * colw, y);
+      y += 0.02;
+      pdf2.setLineWidth(0.01);
+      pdf2.line(m.left + col * colw, y, m.left + col * colw + pdf2.getTextWidth(t), y);
+      y += pdf2.getLineHeight() / 72;
+    } else if (line.type === "chords") {
+      pdf2.setFontSize(9);
+      pdf2.setFont("helvetica", "bold");
+      const t = replaceChords(line.line);
+      pdf2.text(t, m.left + col * colw, y);
+      y += pdf2.getLineHeight() / 72;
+    } else if (line.type === "lyrics") {
+      pdf2.setFontSize(10);
+      pdf2.setFont("helvetica", "normal");
+      const t = replaceChords(line.line);
+      pdf2.text(t, m.left + col * colw, y);
+      y += pdf2.getLineHeight() / 72;
+    } else if (line.type === "lyrics+chords") {
+      let chords2 = [...line.chords.matchAll(/[^ ]+/g)].map((v) => ({ i: v.index, c: v[0] }));
+      let curr = "";
+      let rendered = [];
+      pdf2.setFontSize(10);
+      pdf2.setFont("helvetica", "normal");
+      if (line.lyrics.length < line.chords.length) {
+        line.lyrics += " ".repeat(line.chords.length - line.lyrics.length);
+      }
+      line.lyrics.split("").forEach((v, i) => {
+        let chord = chords2.find((v2) => v2.i === i);
+        if (chord) {
+          rendered.push({ chord: chord.c, len: pdf2.getTextWidth(curr) });
+        }
+        curr += v;
+      });
+      pdf2.setFontSize(9);
+      pdf2.setFont("helvetica", "bold");
+      rendered.filter((v) => v.chord).forEach(({ chord, len }) => {
+        pdf2.text(replaceChords(chord), m.left + col * colw + len, y);
+      });
+      y += pdf2.getLineHeight() / 72;
+      pdf2.setFontSize(10);
+      pdf2.setFont("helvetica", "normal");
+      pdf2.text(line.lyrics, m.left + col * colw, y);
+      y += pdf2.getLineHeight() / 72;
+    }
+  });
+  pdf2.setFontSize(10);
+  pdf2.setFont("helvetica", "normal");
+  let pageCount = pdf2.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    pdf2.setPage(i);
+    const t = `Page ${i} of ${pageCount}`;
+    pdf2.text(t, pageWidth - m.right - pdf2.getTextWidth(t), m.top);
   }
-});
-pdf.setFontSize(10);
-pdf.setFont("helvetica", "normal");
-var pageCount = pdf.getNumberOfPages();
-for (let i = 1; i <= pageCount; i++) {
-  pdf.setPage(i);
-  const t = `Page ${i} of ${pageCount}`;
-  pdf.text(t, pageWidth - m.right - pdf.getTextWidth(t), m.top);
+  return pdf2;
 }
+
+// main.ts
+var args = (0, import_minimist.default)(process.argv.slice(2));
+if (args["h"] || args["help"]) {
+  console.log(
+    `Usage: chordpdf [options] [input_file] [output_file]
+Valid options:
+ -h/--help  displays this help message
+ -k/--key   sets the key of the output file`
+  );
+  process.exit(0);
+}
+var input;
+try {
+  input = (0, import_fs.readFileSync)(args._[0], "utf-8");
+} catch (e) {
+  console.error("Input file not found:", args._[0]);
+  process.exit(1);
+}
+if (!args._[1]) {
+  console.error("Output file required (use -h for help)");
+  process.exit(1);
+}
+var key = args["k"] ?? args["key"];
+var pdf = render(input, key);
 (0, import_fs.writeFileSync)(args._[1], pdf.output());
 /*! Bundled license information:
 
