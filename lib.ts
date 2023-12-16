@@ -40,11 +40,31 @@ export function getMetadata(input: string) {
   }
 }
 
-export function render(input: string, key?: string): jsPDF {
+export function render(input: string, keys?: string | string[]): jsPDF {
+  let pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'in',
+  })
+
+  input.split('===').filter(v => v.trim()).forEach((file, i) => {
+    if (i !== 0) pdf.addPage();
+    let key;
+    if (typeof keys === 'string') {
+      key = keys;
+    } else {
+      key = keys?.[i] ?? keys?.[0];
+    }
+    renderOnto(pdf, file, key);
+  })
+
+  return pdf;
+}
+
+export function renderOnto(pdf: jsPDF, input: string, key?: string): jsPDF {
   const {metadata, linesRaw} = getMetadata(input);
   
   if (key) {
-    const startingIndex = chords.indexOf(key)
+    const startingIndex = chords.indexOf(key.replace('m', ''))
     if (startingIndex === -1) {
       console.error("Invalid key:", key)
       console.error("Valid keys:", chords.join(' '))
@@ -57,18 +77,13 @@ export function render(input: string, key?: string): jsPDF {
   const replaceChords = (c: string) => c.replace(/(?<![1-7a-z#])[1-7]/g, (v) => mapping[v]);
   
   const lines = ('#' + linesRaw.join('\n#')).split('\n').filter(v => v).map(v => ({
-    type: v.startsWith('#') ? 'title' : v.match(/^[ \t0-9m/|()]+$/) ? 'chords' : 'lyrics' as 'title'|'chords'|'lyrics',
+    type: v.startsWith('#') ? 'title' : v.match(/^[ \t0-9msuadno/|()]+$/) ? 'chords' : 'lyrics' as 'title'|'chords'|'lyrics',
     line: v,
   })).reduce((n, v, i, a) => 
     v.type === 'lyrics' && a[i - 1]?.type === 'chords'
       ? [...n.slice(0, -1), {type: 'lyrics+chords' as 'lyrics+chords', chords: a[i-1].line, lyrics: v.line,}]
       : [...n, v],
     [] as ({type: 'chords'|'lyrics'|'title', line: string} | {type: 'lyrics+chords', lyrics: string, chords: string})[])  
-  
-  let pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'in',
-  })
   
   const m = {
     left: 0.5,
@@ -104,6 +119,8 @@ export function render(input: string, key?: string): jsPDF {
   }
   
   drawHeaders();
+
+  let startingNumberOfPages = pdf.getNumberOfPages();
   
   let col = 0;
   let colw = 4;
@@ -190,9 +207,9 @@ export function render(input: string, key?: string): jsPDF {
   
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  let pageCount = pdf.getNumberOfPages();
+  let pageCount = pdf.getNumberOfPages() - startingNumberOfPages + 1;
   for (let i = 1; i <= pageCount; i++) {
-    pdf.setPage(i);
+    pdf.setPage(i + startingNumberOfPages + 1);
     const t = `Page ${i} of ${pageCount}`;
     pdf.text(t, pageWidth - m.right - pdf.getTextWidth(t), m.top);
   }

@@ -4,19 +4,23 @@ import { render } from "./lib";
 
 const args = minimist(process.argv.slice(2));
 
+console.log(args.k);
+
 if (args['h'] || args['help']) {
   console.log(
-`Usage: chordpdf [options] [input_file] [output_file]
+`Usage: chordpdf [options] [input_file1] [input_file2...] [output_file]
 Valid options:
  -h/--help  displays this help message
- -k/--key   sets the key of the output file`
+ -k/--key   sets the key of the output file (use multiple for multiple input files)`
 )
 process.exit(0)
 }
 
-let input: string;
+let input: string = '';
 try {
-  input = readFileSync(args._[0], 'utf-8');
+  args._.slice(0, -1).forEach(file => {
+    input += readFileSync(args._[0], 'utf-8') + '===';
+  })
 } catch (e) {
   console.error("Input file not found:", args._[0]);
   process.exit(1);

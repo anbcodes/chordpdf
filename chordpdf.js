@@ -34165,10 +34165,28 @@ function getMetadata(input2) {
     metadata: Object.fromEntries(metadataRaw.split("\n").map((v) => v.split(":").map((v2) => v2.trim())))
   };
 }
-function render(input2, key2) {
+function render(input2, keys) {
+  let pdf2 = new import_jspdf.default({
+    orientation: "portrait",
+    unit: "in"
+  });
+  input2.split("===").filter((v) => v.trim()).forEach((file, i) => {
+    if (i !== 0)
+      pdf2.addPage();
+    let key2;
+    if (typeof keys === "string") {
+      key2 = keys;
+    } else {
+      key2 = keys?.[i] ?? keys?.[0];
+    }
+    renderOnto(pdf2, file, key2);
+  });
+  return pdf2;
+}
+function renderOnto(pdf2, input2, key2) {
   const { metadata, linesRaw } = getMetadata(input2);
   if (key2) {
-    const startingIndex = chords.indexOf(key2);
+    const startingIndex = chords.indexOf(key2.replace("m", ""));
     if (startingIndex === -1) {
       console.error("Invalid key:", key2);
       console.error("Valid keys:", chords.join(" "));
@@ -34178,16 +34196,12 @@ function render(input2, key2) {
   }
   const replaceChords = (c) => c.replace(/(?<![1-7a-z#])[1-7]/g, (v) => mapping[v]);
   const lines = ("#" + linesRaw.join("\n#")).split("\n").filter((v) => v).map((v) => ({
-    type: v.startsWith("#") ? "title" : v.match(/^[ \t0-9m/|()]+$/) ? "chords" : "lyrics",
+    type: v.startsWith("#") ? "title" : v.match(/^[ \t0-9msuadno/|()]+$/) ? "chords" : "lyrics",
     line: v
   })).reduce(
     (n, v, i, a) => v.type === "lyrics" && a[i - 1]?.type === "chords" ? [...n.slice(0, -1), { type: "lyrics+chords", chords: a[i - 1].line, lyrics: v.line }] : [...n, v],
     []
   );
-  let pdf2 = new import_jspdf.default({
-    orientation: "portrait",
-    unit: "in"
-  });
   const m = {
     left: 0.5,
     top: 0.75,
@@ -34219,6 +34233,7 @@ function render(input2, key2) {
     y += 0.4;
   };
   drawHeaders();
+  let startingNumberOfPages = pdf2.getNumberOfPages();
   let col = 0;
   let colw = 4;
   let isFirstTitle = true;
@@ -34297,9 +34312,9 @@ function render(input2, key2) {
   });
   pdf2.setFontSize(10);
   pdf2.setFont("helvetica", "normal");
-  let pageCount = pdf2.getNumberOfPages();
+  let pageCount = pdf2.getNumberOfPages() - startingNumberOfPages + 1;
   for (let i = 1; i <= pageCount; i++) {
-    pdf2.setPage(i);
+    pdf2.setPage(i + startingNumberOfPages + 1);
     const t = `Page ${i} of ${pageCount}`;
     pdf2.text(t, pageWidth - m.right - pdf2.getTextWidth(t), m.top);
   }
@@ -34308,18 +34323,21 @@ function render(input2, key2) {
 
 // main.ts
 var args = (0, import_minimist.default)(process.argv.slice(2));
+console.log(args.k);
 if (args["h"] || args["help"]) {
   console.log(
-    `Usage: chordpdf [options] [input_file] [output_file]
+    `Usage: chordpdf [options] [input_file1] [input_file2...] [output_file]
 Valid options:
  -h/--help  displays this help message
- -k/--key   sets the key of the output file`
+ -k/--key   sets the key of the output file (use multiple for multiple input files)`
   );
   process.exit(0);
 }
-var input;
+var input = "";
 try {
-  input = (0, import_fs.readFileSync)(args._[0], "utf-8");
+  args._.slice(0, -1).forEach((file) => {
+    input += (0, import_fs.readFileSync)(args._[0], "utf-8") + "===";
+  });
 } catch (e) {
   console.error("Input file not found:", args._[0]);
   process.exit(1);

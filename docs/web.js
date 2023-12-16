@@ -29574,10 +29574,28 @@ function getMetadata(input2) {
     metadata: Object.fromEntries(metadataRaw.split("\n").map((v3) => v3.split(":").map((v4) => v4.trim())))
   };
 }
-function render(input2, key2) {
+function render(input2, keys) {
+  let pdf = new jspdf_es_min_default({
+    orientation: "portrait",
+    unit: "in"
+  });
+  input2.split("===").filter((v3) => v3.trim()).forEach((file, i3) => {
+    if (i3 !== 0)
+      pdf.addPage();
+    let key2;
+    if (typeof keys === "string") {
+      key2 = keys;
+    } else {
+      key2 = keys?.[i3] ?? keys?.[0];
+    }
+    renderOnto(pdf, file, key2);
+  });
+  return pdf;
+}
+function renderOnto(pdf, input2, key2) {
   const { metadata, linesRaw } = getMetadata(input2);
   if (key2) {
-    const startingIndex = chords.indexOf(key2);
+    const startingIndex = chords.indexOf(key2.replace("m", ""));
     if (startingIndex === -1) {
       console.error("Invalid key:", key2);
       console.error("Valid keys:", chords.join(" "));
@@ -29587,16 +29605,12 @@ function render(input2, key2) {
   }
   const replaceChords = (c4) => c4.replace(/(?<![1-7a-z#])[1-7]/g, (v3) => mapping[v3]);
   const lines = ("#" + linesRaw.join("\n#")).split("\n").filter((v3) => v3).map((v3) => ({
-    type: v3.startsWith("#") ? "title" : v3.match(/^[ \t0-9m/|()]+$/) ? "chords" : "lyrics",
+    type: v3.startsWith("#") ? "title" : v3.match(/^[ \t0-9msuadno/|()]+$/) ? "chords" : "lyrics",
     line: v3
   })).reduce(
     (n3, v3, i3, a3) => v3.type === "lyrics" && a3[i3 - 1]?.type === "chords" ? [...n3.slice(0, -1), { type: "lyrics+chords", chords: a3[i3 - 1].line, lyrics: v3.line }] : [...n3, v3],
     []
   );
-  let pdf = new jspdf_es_min_default({
-    orientation: "portrait",
-    unit: "in"
-  });
   const m4 = {
     left: 0.5,
     top: 0.75,
@@ -29628,6 +29642,7 @@ function render(input2, key2) {
     y3 += 0.4;
   };
   drawHeaders();
+  let startingNumberOfPages = pdf.getNumberOfPages();
   let col = 0;
   let colw = 4;
   let isFirstTitle = true;
@@ -29706,9 +29721,9 @@ function render(input2, key2) {
   });
   pdf.setFontSize(10);
   pdf.setFont("helvetica", "normal");
-  let pageCount = pdf.getNumberOfPages();
+  let pageCount = pdf.getNumberOfPages() - startingNumberOfPages + 1;
   for (let i3 = 1; i3 <= pageCount; i3++) {
-    pdf.setPage(i3);
+    pdf.setPage(i3 + startingNumberOfPages + 1);
     const t3 = `Page ${i3} of ${pageCount}`;
     pdf.text(t3, pageWidth - m4.right - pdf.getTextWidth(t3), m4.top);
   }
