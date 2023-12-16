@@ -4,14 +4,13 @@ import { render } from "./lib";
 
 const args = minimist(process.argv.slice(2));
 
-console.log(args.k);
-
 if (args['h'] || args['help']) {
   console.log(
 `Usage: chordpdf [options] [input_file1] [input_file2...] [output_file]
 Valid options:
  -h/--help  displays this help message
- -k/--key   sets the key of the output file (use multiple for multiple input files)`
+ -k/--key   sets the key of the output file (use multiple for multiple input files)
+ -f/--fontsize   sets the fontsize of the output file`
 )
 process.exit(0)
 }
@@ -32,7 +31,13 @@ if (!args._[1]) {
 }
 
 let key = args['k'] ?? args['key'];
+let fontsize = args['f'] ?? args['fontsize'];
 
-const pdf = render(input, key)
+if (isNaN(+(fontsize ?? 13))) {
+  console.error("Invalid font size (use -h for help)");
+  process.exit(1)
+}
+
+const pdf = render(input, key, +(fontsize ?? 13))
 
 writeFileSync(args._[1], pdf.output());

@@ -34165,7 +34165,7 @@ function getMetadata(input2) {
     metadata: Object.fromEntries(metadataRaw.split("\n").map((v) => v.split(":").map((v2) => v2.trim())))
   };
 }
-function render(input2, keys) {
+function render(input2, keys, fontSize = 13) {
   let pdf2 = new import_jspdf.default({
     orientation: "portrait",
     unit: "in"
@@ -34179,11 +34179,11 @@ function render(input2, keys) {
     } else {
       key2 = keys?.[i] ?? keys?.[0];
     }
-    renderOnto(pdf2, file, key2);
+    renderOnto(pdf2, file, key2, fontSize);
   });
   return pdf2;
 }
-function renderOnto(pdf2, input2, key2) {
+function renderOnto(pdf2, input2, key2, fontSize = 13) {
   const { metadata, linesRaw } = getMetadata(input2);
   if (key2) {
     const startingIndex = chords.indexOf(key2.replace("m", ""));
@@ -34217,7 +34217,7 @@ function renderOnto(pdf2, input2, key2) {
       pdf2.text(metadata.Title, m.left, y);
       y += 0.2;
     }
-    pdf2.setFontSize(10);
+    pdf2.setFontSize(fontSize - 2);
     let t = "";
     if (metadata.Author?.trim()) {
       t += `by ${metadata.Author}     `;
@@ -34261,9 +34261,8 @@ function renderOnto(pdf2, input2, key2) {
       } else {
         isFirstTitle = false;
       }
-      pdf2.setFontSize(10);
+      pdf2.setFontSize(fontSize);
       pdf2.setFont("helvetica", "bold");
-      console.log(line);
       const t = line.line.trim().slice(1).trim();
       pdf2.text(t, m.left + col * colw, y);
       y += 0.02;
@@ -34271,13 +34270,13 @@ function renderOnto(pdf2, input2, key2) {
       pdf2.line(m.left + col * colw, y, m.left + col * colw + pdf2.getTextWidth(t), y);
       y += pdf2.getLineHeight() / 72;
     } else if (line.type === "chords") {
-      pdf2.setFontSize(9);
+      pdf2.setFontSize(fontSize - 1);
       pdf2.setFont("helvetica", "bold");
       const t = replaceChords(line.line);
       pdf2.text(t, m.left + col * colw, y);
       y += pdf2.getLineHeight() / 72;
     } else if (line.type === "lyrics") {
-      pdf2.setFontSize(10);
+      pdf2.setFontSize(fontSize);
       pdf2.setFont("helvetica", "normal");
       const t = replaceChords(line.line);
       pdf2.text(t, m.left + col * colw, y);
@@ -34286,7 +34285,7 @@ function renderOnto(pdf2, input2, key2) {
       let chords2 = [...line.chords.matchAll(/[^ ]+/g)].map((v) => ({ i: v.index, c: v[0] }));
       let curr = "";
       let rendered = [];
-      pdf2.setFontSize(10);
+      pdf2.setFontSize(fontSize - 1);
       pdf2.setFont("helvetica", "normal");
       if (line.lyrics.length < line.chords.length) {
         line.lyrics += " ".repeat(line.chords.length - line.lyrics.length);
@@ -34298,19 +34297,19 @@ function renderOnto(pdf2, input2, key2) {
         }
         curr += v;
       });
-      pdf2.setFontSize(9);
+      pdf2.setFontSize(fontSize - 1);
       pdf2.setFont("helvetica", "bold");
       rendered.filter((v) => v.chord).forEach(({ chord, len }) => {
         pdf2.text(replaceChords(chord), m.left + col * colw + len, y);
       });
       y += pdf2.getLineHeight() / 72;
-      pdf2.setFontSize(10);
+      pdf2.setFontSize(fontSize);
       pdf2.setFont("helvetica", "normal");
       pdf2.text(line.lyrics, m.left + col * colw, y);
       y += pdf2.getLineHeight() / 72;
     }
   });
-  pdf2.setFontSize(10);
+  pdf2.setFontSize(fontSize);
   pdf2.setFont("helvetica", "normal");
   let pageCount = pdf2.getNumberOfPages() - startingNumberOfPages + 1;
   for (let i = 1; i <= pageCount; i++) {
@@ -34323,13 +34322,13 @@ function renderOnto(pdf2, input2, key2) {
 
 // main.ts
 var args = (0, import_minimist.default)(process.argv.slice(2));
-console.log(args.k);
 if (args["h"] || args["help"]) {
   console.log(
     `Usage: chordpdf [options] [input_file1] [input_file2...] [output_file]
 Valid options:
  -h/--help  displays this help message
- -k/--key   sets the key of the output file (use multiple for multiple input files)`
+ -k/--key   sets the key of the output file (use multiple for multiple input files)
+ -f/--fontsize   sets the fontsize of the output file`
   );
   process.exit(0);
 }
@@ -34347,7 +34346,12 @@ if (!args._[1]) {
   process.exit(1);
 }
 var key = args["k"] ?? args["key"];
-var pdf = render(input, key);
+var fontsize = args["f"] ?? args["fontsize"];
+if (isNaN(+(fontsize ?? 13))) {
+  console.error("Invalid font size (use -h for help)");
+  process.exit(1);
+}
+var pdf = render(input, key, +(fontsize ?? 13));
 (0, import_fs.writeFileSync)(args._[1], pdf.output());
 /*! Bundled license information:
 

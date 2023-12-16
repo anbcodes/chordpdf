@@ -29574,7 +29574,7 @@ function getMetadata(input2) {
     metadata: Object.fromEntries(metadataRaw.split("\n").map((v3) => v3.split(":").map((v4) => v4.trim())))
   };
 }
-function render(input2, keys) {
+function render(input2, keys, fontSize = 13) {
   let pdf = new jspdf_es_min_default({
     orientation: "portrait",
     unit: "in"
@@ -29588,11 +29588,11 @@ function render(input2, keys) {
     } else {
       key2 = keys?.[i3] ?? keys?.[0];
     }
-    renderOnto(pdf, file, key2);
+    renderOnto(pdf, file, key2, fontSize);
   });
   return pdf;
 }
-function renderOnto(pdf, input2, key2) {
+function renderOnto(pdf, input2, key2, fontSize = 13) {
   const { metadata, linesRaw } = getMetadata(input2);
   if (key2) {
     const startingIndex = chords.indexOf(key2.replace("m", ""));
@@ -29626,7 +29626,7 @@ function renderOnto(pdf, input2, key2) {
       pdf.text(metadata.Title, m4.left, y3);
       y3 += 0.2;
     }
-    pdf.setFontSize(10);
+    pdf.setFontSize(fontSize - 2);
     let t3 = "";
     if (metadata.Author?.trim()) {
       t3 += `by ${metadata.Author}     `;
@@ -29670,9 +29670,8 @@ function renderOnto(pdf, input2, key2) {
       } else {
         isFirstTitle = false;
       }
-      pdf.setFontSize(10);
+      pdf.setFontSize(fontSize);
       pdf.setFont("helvetica", "bold");
-      console.log(line);
       const t3 = line.line.trim().slice(1).trim();
       pdf.text(t3, m4.left + col * colw, y3);
       y3 += 0.02;
@@ -29680,13 +29679,13 @@ function renderOnto(pdf, input2, key2) {
       pdf.line(m4.left + col * colw, y3, m4.left + col * colw + pdf.getTextWidth(t3), y3);
       y3 += pdf.getLineHeight() / 72;
     } else if (line.type === "chords") {
-      pdf.setFontSize(9);
+      pdf.setFontSize(fontSize - 1);
       pdf.setFont("helvetica", "bold");
       const t3 = replaceChords(line.line);
       pdf.text(t3, m4.left + col * colw, y3);
       y3 += pdf.getLineHeight() / 72;
     } else if (line.type === "lyrics") {
-      pdf.setFontSize(10);
+      pdf.setFontSize(fontSize);
       pdf.setFont("helvetica", "normal");
       const t3 = replaceChords(line.line);
       pdf.text(t3, m4.left + col * colw, y3);
@@ -29695,7 +29694,7 @@ function renderOnto(pdf, input2, key2) {
       let chords2 = [...line.chords.matchAll(/[^ ]+/g)].map((v3) => ({ i: v3.index, c: v3[0] }));
       let curr = "";
       let rendered = [];
-      pdf.setFontSize(10);
+      pdf.setFontSize(fontSize - 1);
       pdf.setFont("helvetica", "normal");
       if (line.lyrics.length < line.chords.length) {
         line.lyrics += " ".repeat(line.chords.length - line.lyrics.length);
@@ -29707,19 +29706,19 @@ function renderOnto(pdf, input2, key2) {
         }
         curr += v3;
       });
-      pdf.setFontSize(9);
+      pdf.setFontSize(fontSize - 1);
       pdf.setFont("helvetica", "bold");
       rendered.filter((v3) => v3.chord).forEach(({ chord, len }) => {
         pdf.text(replaceChords(chord), m4.left + col * colw + len, y3);
       });
       y3 += pdf.getLineHeight() / 72;
-      pdf.setFontSize(10);
+      pdf.setFontSize(fontSize);
       pdf.setFont("helvetica", "normal");
       pdf.text(line.lyrics, m4.left + col * colw, y3);
       y3 += pdf.getLineHeight() / 72;
     }
   });
-  pdf.setFontSize(10);
+  pdf.setFontSize(fontSize);
   pdf.setFont("helvetica", "normal");
   let pageCount = pdf.getNumberOfPages() - startingNumberOfPages + 1;
   for (let i3 = 1; i3 <= pageCount; i3++) {

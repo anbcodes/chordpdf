@@ -40,7 +40,7 @@ export function getMetadata(input: string) {
   }
 }
 
-export function render(input: string, keys?: string | string[]): jsPDF {
+export function render(input: string, keys?: string | string[], fontSize = 13): jsPDF {
   let pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'in',
@@ -54,13 +54,13 @@ export function render(input: string, keys?: string | string[]): jsPDF {
     } else {
       key = keys?.[i] ?? keys?.[0];
     }
-    renderOnto(pdf, file, key);
+    renderOnto(pdf, file, key, fontSize);
   })
 
   return pdf;
 }
 
-export function renderOnto(pdf: jsPDF, input: string, key?: string): jsPDF {
+export function renderOnto(pdf: jsPDF, input: string, key?: string, fontSize = 13): jsPDF {
   const {metadata, linesRaw} = getMetadata(input);
   
   if (key) {
@@ -102,7 +102,7 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string): jsPDF {
       pdf.text(metadata.Title, m.left, y);
       y += 0.2;
     }
-    pdf.setFontSize(10);
+    pdf.setFontSize(fontSize - 2);
     let t = '';
     if (metadata.Author?.trim()) {
       t += `by ${metadata.Author}     `
@@ -127,6 +127,7 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string): jsPDF {
   let isFirstTitle = true;
   let pageHeight = 11.5;
   let pageWidth = 8;
+
   
   lines.forEach(line => {
     if (y >= pageHeight - m.bottom || (line.type === 'title' && y + 0.3 >= pageHeight - m.bottom)) {
@@ -152,9 +153,8 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string): jsPDF {
       } else {
         isFirstTitle = false;
       }
-      pdf.setFontSize(10);
+      pdf.setFontSize(fontSize);
       pdf.setFont('helvetica', 'bold')
-      console.log(line)
       const t = line.line.trim().slice(1).trim();
       pdf.text(t, m.left + col*colw, y)
       y += 0.02;
@@ -162,13 +162,13 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string): jsPDF {
       pdf.line(m.left + col*colw, y, m.left + col*colw + pdf.getTextWidth(t), y);
       y += pdf.getLineHeight() / 72
     } else if (line.type === 'chords') {
-      pdf.setFontSize(9);
+      pdf.setFontSize(fontSize - 1);
       pdf.setFont('helvetica', 'bold');
       const t = replaceChords(line.line);
       pdf.text(t, m.left + col * colw, y)
       y += pdf.getLineHeight() / 72
     } else if (line.type === 'lyrics') {
-      pdf.setFontSize(10);
+      pdf.setFontSize(fontSize);
       pdf.setFont('helvetica', 'normal');
       const t = replaceChords(line.line);
       pdf.text(t, m.left + col * colw, y)
@@ -177,7 +177,7 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string): jsPDF {
       let chords = [...line.chords.matchAll(/[^ ]+/g)].map(v => ({i: v.index, c: v[0]}))
       let curr = ''; 
       let rendered: {chord: string, len: number}[] = [];
-      pdf.setFontSize(10);
+      pdf.setFontSize(fontSize - 1);
       pdf.setFont('helvetica', 'normal');
       if (line.lyrics.length < line.chords.length) {
         line.lyrics += ' '.repeat(line.chords.length - line.lyrics.length)
@@ -190,14 +190,14 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string): jsPDF {
         curr += v;
       })
   
-      pdf.setFontSize(9);
+      pdf.setFontSize(fontSize - 1);
       pdf.setFont('helvetica', 'bold');
       rendered.filter(v => v.chord).forEach(({chord, len}) => {
         pdf.text(replaceChords(chord), m.left + col * colw + len, y)
       });
       y += pdf.getLineHeight() / 72
   
-      pdf.setFontSize(10);
+      pdf.setFontSize(fontSize);
       pdf.setFont('helvetica', 'normal');
       pdf.text(line.lyrics, m.left + col * colw, y)
       y += pdf.getLineHeight() / 72
@@ -205,7 +205,7 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string): jsPDF {
   
   })
   
-  pdf.setFontSize(10);
+  pdf.setFontSize(fontSize);
   pdf.setFont('helvetica', 'normal');
   let pageCount = pdf.getNumberOfPages() - startingNumberOfPages + 1;
   for (let i = 1; i <= pageCount; i++) {
