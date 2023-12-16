@@ -2,6 +2,8 @@
 
 Renders text files of chord charts as PDFs.
 
+Try it out here: https://chordpdf.anb.codes
+
 Install with `npm install -g @anbcodes/chordpdf`
 
 Usage: `chordpdf <input file> <output file> --key [key]`
