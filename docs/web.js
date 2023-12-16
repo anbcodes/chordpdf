@@ -29621,7 +29621,7 @@ function render(input2, key2) {
     if (metadata.Key) {
       t3 += ` (${metadata.Key})`;
     }
-    if (metadata.bpm) {
+    if (metadata.BPM) {
       t3 += `  ${metadata.BPM} bpm`;
     }
     pdf.text(t3, m4.left, y3);

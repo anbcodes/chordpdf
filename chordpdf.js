@@ -34155,9 +34155,18 @@ var mapping = {
   7: 7
 };
 var scale = [0, 2, 4, 5, 7, 9, 10];
-function render(input2, key2) {
+function getMetadata(input2) {
   const [metadataRaw, ...linesRaw] = input2.split("\n#");
-  const metadata = Object.fromEntries(metadataRaw.split("\n").map((v) => v.split(":").map((v2) => v2.trim())));
+  return metadataRaw?.startsWith("#") ? {
+    linesRaw: [metadataRaw.slice(1), ...linesRaw],
+    metadata: {}
+  } : {
+    linesRaw,
+    metadata: Object.fromEntries(metadataRaw.split("\n").map((v) => v.split(":").map((v2) => v2.trim())))
+  };
+}
+function render(input2, key2) {
+  const { metadata, linesRaw } = getMetadata(input2);
   if (key2) {
     const startingIndex = chords.indexOf(key2);
     if (startingIndex === -1) {
@@ -34188,11 +34197,25 @@ function render(input2, key2) {
   let y = 0;
   const drawHeaders = () => {
     y = m.top;
-    pdf2.setFontSize(30);
-    pdf2.text(metadata.Title, m.left, y);
+    if (metadata.Title) {
+      pdf2.setFontSize(30);
+      pdf2.setFont("helvetica", "normal");
+      pdf2.text(metadata.Title, m.left, y);
+      y += 0.2;
+    }
     pdf2.setFontSize(10);
-    y += 0.2;
-    pdf2.text(`by ${metadata.Author}     Key ${key2 ?? "Numbers"} (${metadata.Key})  ${metadata.BPM} bpm`, m.left, y);
+    let t = "";
+    if (metadata.Author?.trim()) {
+      t += `by ${metadata.Author}     `;
+    }
+    t += `Key ${key2 ?? "Numbers"}`;
+    if (metadata.Key) {
+      t += ` (${metadata.Key})`;
+    }
+    if (metadata.BPM) {
+      t += `  ${metadata.BPM} bpm`;
+    }
+    pdf2.text(t, m.left, y);
     y += 0.4;
   };
   drawHeaders();
@@ -34203,9 +34226,9 @@ function render(input2, key2) {
   let pageWidth = 8;
   lines.forEach((line) => {
     if (y >= pageHeight - m.bottom || line.type === "title" && y + 0.3 >= pageHeight - m.bottom) {
+      isFirstTitle = true;
       if (col === 0) {
         y = m.top + 0.6;
-        isFirstTitle = true;
         col = 1;
       } else {
         y = 0;
@@ -34225,7 +34248,8 @@ function render(input2, key2) {
       }
       pdf2.setFontSize(10);
       pdf2.setFont("helvetica", "bold");
-      const t = line.line.slice(1).trim();
+      console.log(line);
+      const t = line.line.trim().slice(1).trim();
       pdf2.text(t, m.left + col * colw, y);
       y += 0.02;
       pdf2.setLineWidth(0.01);

@@ -96,7 +96,7 @@ export function render(input: string, key?: string): jsPDF {
     if (metadata.Key) {
       t += ` (${metadata.Key})`
     }
-    if (metadata.bpm) {
+    if (metadata.BPM) {
       t += `  ${metadata.BPM} bpm`
     }
     pdf.text(t, m.left, y);
