@@ -15,7 +15,17 @@
 <body>
   <main>
     <h1>Chord PDF</h1>
-    <p>Generate chord chart PDFs. You can share your song by sending someone the link to this page (make sure to include the part after the '?s=')</p>
+    <p>Generate chord chart PDFs. You can share your song by sending copying the link (make sure to include the part after the '?s=')</p>
+    <p>The format is fairly simple (there is an example below).
+      Use "# title" to seperate sections and put the chords (in <a href="https://en.wikipedia.org/wiki/Nashville_Number_System">number notation</a>) above the words.
+      If you don't use number notation, the key dropdown won't work.
+      Number notation is where you take the key the song is in and call that chord a 1.
+      So in the key of C, a C chord would be a 1.
+      Next you go up the scale and each note gets the next number.
+      So D is 2, E is 3, ..., B is 7. If you were in the key of A, 
+      A is 1, B is 2, C# is 3, D is 4, etc.
+    </p>
+    <p><a href="https://github.com/anbcodes/chordpdf">Github</a></p>
     <h2>Chord chart</h2>
     <label for="key">Key</label>
     <select name="key" id="key">
