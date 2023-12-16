@@ -1,0 +1,23 @@
+{
+  "name": "@anbcodes/chordpdf",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild main.ts --bundle --outfile=chordpdf.js --platform=node"
+  },
+  "directories": {
+    "bin": "./bin"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/minimist": "^1.2.5",
+    "@types/node": "^20.10.4",
+    "esbuild": "^0.19.9",
+    "jspdf": "^2.5.1",
+    "minimist": "^1.2.8"
+  }
+}

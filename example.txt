@@ -1,0 +1,17 @@
+Key: C
+Title: Example
+Author: Example Author
+BPM: 71
+
+# Verse 1
+1              4
+ Some lines of a song
+4                   5
+Next line, and again
+6m   2m
+More chords
+4   5       1
+And finally
+
+# Interlude
+(1) / / / | / / / /
