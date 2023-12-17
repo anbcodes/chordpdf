@@ -3272,15 +3272,15 @@ var require_html2canvas = __commonJS({
         type: 4
         /* TOKEN_VALUE */
       };
-      var computeLineHeight = function(token, fontSize2) {
+      var computeLineHeight = function(token, fontSize3) {
         if (isIdentToken(token) && token.value === "normal") {
-          return 1.2 * fontSize2;
+          return 1.2 * fontSize3;
         } else if (token.type === 17) {
-          return fontSize2 * token.number;
+          return fontSize3 * token.number;
         } else if (isLengthPercentage(token)) {
-          return getAbsoluteValue(token, fontSize2);
+          return getAbsoluteValue(token, fontSize3);
         }
-        return fontSize2;
+        return fontSize3;
       };
       var listStyleImage = {
         name: "list-style-image",
@@ -3795,7 +3795,7 @@ var require_html2canvas = __commonJS({
           });
         }
       };
-      var fontSize = {
+      var fontSize2 = {
         name: "font-size",
         initialValue: "0",
         prefix: false,
@@ -4104,7 +4104,7 @@ var require_html2canvas = __commonJS({
             this.display = parse(context, display, declaration.display);
             this.float = parse(context, float, declaration.cssFloat);
             this.fontFamily = parse(context, fontFamily, declaration.fontFamily);
-            this.fontSize = parse(context, fontSize, declaration.fontSize);
+            this.fontSize = parse(context, fontSize2, declaration.fontSize);
             this.fontStyle = parse(context, fontStyle, declaration.fontStyle);
             this.fontVariant = parse(context, fontVariant, declaration.fontVariant);
             this.fontWeight = parse(context, fontWeight, declaration.fontWeight);
@@ -7026,14 +7026,14 @@ var require_html2canvas = __commonJS({
             this._data = {};
             this._document = document2;
           }
-          FontMetrics2.prototype.parseMetrics = function(fontFamily2, fontSize2) {
+          FontMetrics2.prototype.parseMetrics = function(fontFamily2, fontSize3) {
             var container = this._document.createElement("div");
             var img = this._document.createElement("img");
             var span = this._document.createElement("span");
             var body = this._document.body;
             container.style.visibility = "hidden";
             container.style.fontFamily = fontFamily2;
-            container.style.fontSize = fontSize2;
+            container.style.fontSize = fontSize3;
             container.style.margin = "0";
             container.style.padding = "0";
             container.style.whiteSpace = "nowrap";
@@ -7045,7 +7045,7 @@ var require_html2canvas = __commonJS({
             img.style.padding = "0";
             img.style.verticalAlign = "baseline";
             span.style.fontFamily = fontFamily2;
-            span.style.fontSize = fontSize2;
+            span.style.fontSize = fontSize3;
             span.style.margin = "0";
             span.style.padding = "0";
             span.appendChild(this._document.createTextNode(SAMPLE_TEXT));
@@ -7060,10 +7060,10 @@ var require_html2canvas = __commonJS({
             body.removeChild(container);
             return { baseline, middle };
           };
-          FontMetrics2.prototype.getMetrics = function(fontFamily2, fontSize2) {
-            var key2 = fontFamily2 + " " + fontSize2;
+          FontMetrics2.prototype.getMetrics = function(fontFamily2, fontSize3) {
+            var key2 = fontFamily2 + " " + fontSize3;
             if (typeof this._data[key2] === "undefined") {
-              this._data[key2] = this.parseMetrics(fontFamily2, fontSize2);
+              this._data[key2] = this.parseMetrics(fontFamily2, fontSize3);
             }
             return this._data[key2];
           };
@@ -7202,24 +7202,24 @@ var require_html2canvas = __commonJS({
               return variant === "normal" || variant === "small-caps";
             }).join("");
             var fontFamily2 = fixIOSSystemFonts(styles.fontFamily).join(", ");
-            var fontSize2 = isDimensionToken(styles.fontSize) ? "" + styles.fontSize.number + styles.fontSize.unit : styles.fontSize.number + "px";
+            var fontSize3 = isDimensionToken(styles.fontSize) ? "" + styles.fontSize.number + styles.fontSize.unit : styles.fontSize.number + "px";
             return [
-              [styles.fontStyle, fontVariant2, styles.fontWeight, fontSize2, fontFamily2].join(" "),
+              [styles.fontStyle, fontVariant2, styles.fontWeight, fontSize3, fontFamily2].join(" "),
               fontFamily2,
-              fontSize2
+              fontSize3
             ];
           };
           CanvasRenderer2.prototype.renderTextNode = function(text, styles) {
             return __awaiter(this, void 0, void 0, function() {
-              var _a2, font, fontFamily2, fontSize2, _b2, baseline, middle, paintOrder2;
+              var _a2, font, fontFamily2, fontSize3, _b2, baseline, middle, paintOrder2;
               var _this = this;
               return __generator(this, function(_c) {
-                _a2 = this.createFontStyle(styles), font = _a2[0], fontFamily2 = _a2[1], fontSize2 = _a2[2];
+                _a2 = this.createFontStyle(styles), font = _a2[0], fontFamily2 = _a2[1], fontSize3 = _a2[2];
                 this.ctx.font = font;
                 this.ctx.direction = styles.direction === 1 ? "rtl" : "ltr";
                 this.ctx.textAlign = "left";
                 this.ctx.textBaseline = "alphabetic";
-                _b2 = this.fontMetrics.getMetrics(fontFamily2, fontSize2), baseline = _b2.baseline, middle = _b2.middle;
+                _b2 = this.fontMetrics.getMetrics(fontFamily2, fontSize3), baseline = _b2.baseline, middle = _b2.middle;
                 paintOrder2 = styles.paintOrder;
                 text.textBounds.forEach(function(text2) {
                   paintOrder2.forEach(function(paintOrderLayer) {
@@ -7292,7 +7292,7 @@ var require_html2canvas = __commonJS({
           };
           CanvasRenderer2.prototype.renderNodeContent = function(paint) {
             return __awaiter(this, void 0, void 0, function() {
-              var container, curves, styles, _i, _a2, child, image2, image2, iframeRenderer, canvas, size, _b2, fontFamily2, fontSize2, baseline, bounds, x2, textBounds, img, image2, url, fontFamily2, bounds;
+              var container, curves, styles, _i, _a2, child, image2, image2, iframeRenderer, canvas, size, _b2, fontFamily2, fontSize3, baseline, bounds, x2, textBounds, img, image2, url, fontFamily2, bounds;
               return __generator(this, function(_c) {
                 switch (_c.label) {
                   case 0:
@@ -7398,8 +7398,8 @@ var require_html2canvas = __commonJS({
                       }
                     }
                     if (isTextInputElement(container) && container.value.length) {
-                      _b2 = this.createFontStyle(styles), fontFamily2 = _b2[0], fontSize2 = _b2[1];
-                      baseline = this.fontMetrics.getMetrics(fontFamily2, fontSize2).baseline;
+                      _b2 = this.createFontStyle(styles), fontFamily2 = _b2[0], fontSize3 = _b2[1];
+                      baseline = this.fontMetrics.getMetrics(fontFamily2, fontSize3).baseline;
                       this.ctx.font = fontFamily2;
                       this.ctx.fillStyle = asString(styles.color);
                       this.ctx.textBaseline = "alphabetic";
@@ -15453,9 +15453,9 @@ var init_index_es = __esm({
         var [x2 = defaultValue, y3 = defaultValue] = toNumbers(point);
         return new _Point(x2, y3);
       }
-      static parseScale(scale2) {
+      static parseScale(scale) {
         var defaultValue = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 1;
-        var [x2 = defaultValue, y3 = x2] = toNumbers(scale2);
+        var [x2 = defaultValue, y3 = x2] = toNumbers(scale);
         return new _Point(x2, y3);
       }
       static parsePath(path) {
@@ -16080,12 +16080,12 @@ var init_index_es = __esm({
       }
     };
     Scale = class {
-      constructor(_3, scale2, transformOrigin) {
+      constructor(_3, scale, transformOrigin) {
         this.type = "scale";
         this.scale = null;
         this.originX = null;
         this.originY = null;
-        var scaleSize = Point.parseScale(scale2);
+        var scaleSize = Point.parseScale(scale);
         if (scaleSize.x === 0 || scaleSize.y === 0) {
           scaleSize.x = PSEUDO_ZERO;
           scaleSize.y = PSEUDO_ZERO;
@@ -16484,10 +16484,10 @@ var init_index_es = __esm({
       }
     };
     Font = class _Font {
-      constructor(fontStyle, fontVariant, fontWeight, fontSize, fontFamily, inherit) {
+      constructor(fontStyle, fontVariant, fontWeight, fontSize2, fontFamily, inherit) {
         var inheritFont = inherit ? typeof inherit === "string" ? _Font.parse(inherit) : inherit : {};
         this.fontFamily = fontFamily || inheritFont.fontFamily;
-        this.fontSize = fontSize || inheritFont.fontSize;
+        this.fontSize = fontSize2 || inheritFont.fontSize;
         this.fontStyle = fontStyle || inheritFont.fontStyle;
         this.fontWeight = fontWeight || inheritFont.fontWeight;
         this.fontVariant = fontVariant || inheritFont.fontVariant;
@@ -16498,7 +16498,7 @@ var init_index_es = __esm({
         var fontStyle = "";
         var fontVariant = "";
         var fontWeight = "";
-        var fontSize = "";
+        var fontSize2 = "";
         var fontFamily = "";
         var parts = compressSpaces(font).trim().split(" ");
         var set = {
@@ -16532,7 +16532,7 @@ var init_index_es = __esm({
               break;
             case !set.fontSize:
               if (part !== "inherit") {
-                [fontSize] = part.split("/");
+                [fontSize2] = part.split("/");
               }
               set.fontStyle = true;
               set.fontVariant = true;
@@ -16545,7 +16545,7 @@ var init_index_es = __esm({
               }
           }
         });
-        return new _Font(fontStyle, fontVariant, fontWeight, fontSize, fontFamily, inherit);
+        return new _Font(fontStyle, fontVariant, fontWeight, fontSize2, fontFamily, inherit);
       }
       toString() {
         return [
@@ -17428,12 +17428,12 @@ var init_index_es = __esm({
           parent
         } = this;
         var inheritFontSize = Font.parse(document2.ctx.font).fontSize;
-        var fontSize = parent.getStyle("font-size").getNumber(inheritFontSize);
-        return fontSize;
+        var fontSize2 = parent.getStyle("font-size").getNumber(inheritFontSize);
+        return fontSize2;
       }
       getTElementBoundingBox(ctx) {
-        var fontSize = this.getFontSize();
-        return new BoundingBox(this.x, this.y - fontSize, this.x + this.measureText(ctx), this.y);
+        var fontSize2 = this.getFontSize();
+        return new BoundingBox(this.x, this.y - fontSize2, this.x + this.measureText(ctx), this.y);
       }
       getGlyph(font, text, i3) {
         var char = text[i3];
@@ -17514,18 +17514,18 @@ var init_index_es = __esm({
             unitsPerEm
           } = customFont.fontFace;
           var ctxFont = Font.parse(document2.ctx.font);
-          var fontSize = parent.getStyle("font-size").getNumber(ctxFont.fontSize);
+          var fontSize2 = parent.getStyle("font-size").getNumber(ctxFont.fontSize);
           var fontStyle = parent.getStyle("font-style").getString(ctxFont.fontStyle);
-          var scale2 = fontSize / unitsPerEm;
+          var scale = fontSize2 / unitsPerEm;
           var text = customFont.isRTL ? renderText.split("").reverse().join("") : renderText;
           var dx = toNumbers(parent.getAttribute("dx").getString());
           var len = text.length;
           for (var i3 = 0; i3 < len; i3++) {
             var glyph = this.getGlyph(customFont, text, i3);
             ctx.translate(this.x, this.y);
-            ctx.scale(scale2, -scale2);
+            ctx.scale(scale, -scale);
             var lw = ctx.lineWidth;
-            ctx.lineWidth = ctx.lineWidth * unitsPerEm / fontSize;
+            ctx.lineWidth = ctx.lineWidth * unitsPerEm / fontSize2;
             if (fontStyle === "italic") {
               ctx.transform(1, 0, 0.4, 1, 0, 0);
             }
@@ -17534,9 +17534,9 @@ var init_index_es = __esm({
               ctx.transform(1, 0, -0.4, 1, 0, 0);
             }
             ctx.lineWidth = lw;
-            ctx.scale(1 / scale2, -1 / scale2);
+            ctx.scale(1 / scale, -1 / scale);
             ctx.translate(-this.x, -this.y);
-            this.x += fontSize * (glyph.horizAdvX || customFont.horizAdvX) / unitsPerEm;
+            this.x += fontSize2 * (glyph.horizAdvX || customFont.horizAdvX) / unitsPerEm;
             if (typeof dx[i3] !== "undefined" && !isNaN(dx[i3])) {
               this.x += dx[i3];
             }
@@ -17701,14 +17701,14 @@ var init_index_es = __esm({
         } = this;
         var customFont = parent.getStyle("font-family").getDefinition();
         if (customFont) {
-          var fontSize = this.getFontSize();
+          var fontSize2 = this.getFontSize();
           var text = customFont.isRTL ? targetText.split("").reverse().join("") : targetText;
           var dx = toNumbers(parent.getAttribute("dx").getString());
           var len = text.length;
           var _measure = 0;
           for (var i3 = 0; i3 < len; i3++) {
             var glyph = this.getGlyph(customFont, text, i3);
-            _measure += (glyph.horizAdvX || customFont.horizAdvX) * fontSize / customFont.fontFace.unitsPerEm;
+            _measure += (glyph.horizAdvX || customFont.horizAdvX) * fontSize2 / customFont.fontFace.unitsPerEm;
             if (typeof dx[i3] !== "undefined" && !isNaN(dx[i3])) {
               _measure += dx[i3];
             }
@@ -18605,9 +18605,9 @@ var init_index_es = __esm({
           var {
             mouse
           } = document2.screen;
-          var fontSize = new Property(document2, "fontSize", Font.parse(document2.ctx.font).fontSize);
+          var fontSize2 = new Property(document2, "fontSize", Font.parse(document2.ctx.font).fontSize);
           if (mouse.isWorking()) {
-            mouse.checkBoundingBox(this, new BoundingBox(x2, y3 - fontSize.getPixels("y"), x2 + this.measureText(ctx), y3));
+            mouse.checkBoundingBox(this, new BoundingBox(x2, y3 - fontSize2.getPixels("y"), x2 + this.measureText(ctx), y3));
           }
         } else if (this.children.length > 0) {
           var g2 = new GElement(this.document, null);
@@ -18707,7 +18707,7 @@ var init_index_es = __esm({
         this.setTextData(ctx);
         ctx.save();
         var textDecoration = this.parent.getStyle("text-decoration").getString();
-        var fontSize = this.getFontSize();
+        var fontSize2 = this.getFontSize();
         var {
           glyphInfo
         } = this;
@@ -18734,13 +18734,13 @@ var init_index_es = __esm({
           ctx.restore();
           if (textDecoration === "underline") {
             if (i3 === 0) {
-              ctx.moveTo(p0.x, p0.y + fontSize / 8);
+              ctx.moveTo(p0.x, p0.y + fontSize2 / 8);
             }
-            ctx.lineTo(p1.x, p1.y + fontSize / 5);
+            ctx.lineTo(p1.x, p1.y + fontSize2 / 5);
           }
         });
         if (textDecoration === "underline") {
-          ctx.lineWidth = fontSize / 20;
+          ctx.lineWidth = fontSize2 / 20;
           ctx.strokeStyle = fill;
           ctx.stroke();
           ctx.closePath();
@@ -29540,20 +29540,38 @@ E.API.PDFObject = function() {
 var jspdf_es_min_default = E;
 
 // lib.ts
-var chords = [
-  "A",
-  "Bb",
-  "B",
-  "C",
-  "C#",
-  "D",
-  "Eb",
-  "E",
-  "F",
-  "F#",
-  "G",
-  "G#"
-];
+var chordMappings = {
+  C: ["C", "D", "E", "F", "G", "A", "B"],
+  G: ["G", "A", "B", "C", "D", "E", "F#"],
+  D: ["D", "E", "F#", "G", "A", "B", "C#"],
+  A: ["A", "B", "C#", "D", "E", "F#", "G#"],
+  E: ["E", "F#", "G#", "A", "B", "C#", "D#"],
+  B: ["B", "C#", "D#", "E", "F#", "G#", "A#"],
+  "F#": ["F#", "G#", "A#", "B", "C#", "D#", "E#"],
+  "C#": ["C#", "D#", "E#", "F#", "G#", "A#", "B#"],
+  F: ["F", "G", "A", "Bb", "C", "D", "E"],
+  Bb: ["Bb", "C", "D", "Eb", "F", "G", "A"],
+  Eb: ["Eb", "F", "G", "Ab", "Bb", "C", "D"],
+  Ab: ["Ab", "Bb", "C", "Db", "Eb", "F", "G"],
+  Db: ["Db", "Eb", "F", "Gb", "Ab", "Bb", "C"],
+  Gb: ["Gb", "Ab", "Bb", "Cb", "Db", "Eb", "F"],
+  Cb: ["Cb", "Db", "Eb", "Fb", "Gb", "Ab", "Bb"],
+  Am: ["A", "B", "C", "D", "E", "F", "G"],
+  Em: ["E", "F#", "G", "A", "B", "C", "D"],
+  Bm: ["B", "C#", "D", "E", "F#", "G", "A"],
+  "F#m": ["F#", "G#", "A", "B", "C#", "D", "E"],
+  "C#m": ["C#", "D#", "E", "F#", "G#", "A", "B"],
+  "G#m": ["G#", "A#", "B", "C#", "D#", "E", "F#"],
+  "D#m": ["D#", "E#", "F#", "G#", "A#", "B", "C#"],
+  "A#m": ["A#", "B#", "C#", "D#", "E#", "F#", "G#"],
+  "Dm": ["D", "E", "F", "G", "A", "Bb", "C"],
+  "Gm": ["G", "A", "Bb", "C", "D", "Eb", "F"],
+  "Cm": ["C", "D", "Eb", "F", "G", "Ab", "Bb"],
+  "Fm": ["F", "G", "Ab", "Bb", "C", "Db", "Eb"],
+  "Bbm": ["Bb", "C", "Db", "Eb", "F", "Gb", "Ab"],
+  "Ebm": ["Eb", "F", "Gb", "Ab", "Bb", "Cb", "Db"],
+  "Abm": ["Ab", "Bb", "Cb", "Db", "Eb", "Fb", "Gb"]
+};
 var mapping = {
   1: 1,
   2: 2,
@@ -29563,7 +29581,6 @@ var mapping = {
   6: 6,
   7: 7
 };
-var scale = [0, 2, 4, 5, 7, 9, 11];
 function getMetadata(input2) {
   const [metadataRaw, ...linesRaw] = input2.split("\n#");
   return metadataRaw?.startsWith("#") ? {
@@ -29574,7 +29591,7 @@ function getMetadata(input2) {
     metadata: Object.fromEntries(metadataRaw.split("\n").map((v3) => v3.split(":").map((v4) => v4.trim())))
   };
 }
-function render(input2, keys, fontSize = 13) {
+function render(input2, keys, fontSize2 = 13) {
   let pdf = new jspdf_es_min_default({
     orientation: "portrait",
     unit: "in"
@@ -29588,20 +29605,20 @@ function render(input2, keys, fontSize = 13) {
     } else {
       key2 = keys?.[i3] ?? keys?.[0];
     }
-    renderOnto(pdf, file, key2, fontSize);
+    renderOnto(pdf, file, key2, fontSize2);
   });
   return pdf;
 }
-function renderOnto(pdf, input2, key2, fontSize = 13) {
+function renderOnto(pdf, input2, key2, fontSize2 = 13) {
   const { metadata, linesRaw } = getMetadata(input2);
   if (key2) {
-    const startingIndex = chords.indexOf(key2.replace("m", ""));
-    if (startingIndex === -1) {
+    const map = chordMappings[key2];
+    if (!map) {
       console.error("Invalid key:", key2);
-      console.error("Valid keys:", chords.join(" "));
+      console.error("Valid keys:", Object.keys(chordMappings).join(" "));
       process.exit(1);
     }
-    scale.forEach((v3, i3) => mapping[i3 + 1] = chords[(v3 + startingIndex) % 12]);
+    map.forEach((v3, i3) => mapping[i3 + 1] = v3);
   }
   const replaceChords = (c4) => c4.replace(/(?<![1-7a-z#])[1-7]/g, (v3) => mapping[v3]);
   const lines = ("#" + linesRaw.join("\n#")).split("\n").filter((v3) => v3).map((v3) => ({
@@ -29618,15 +29635,18 @@ function renderOnto(pdf, input2, key2, fontSize = 13) {
     right: 0.5
   };
   let y3 = 0;
+  let chordFontSize = Math.round(fontSize2 * 0.9);
+  let titleFontSize = Math.round(fontSize2 * 2);
+  let headerHeight = 0;
   const drawHeaders = () => {
     y3 = m4.top;
     if (metadata.Title) {
-      pdf.setFontSize(30);
+      pdf.setFontSize(titleFontSize);
       pdf.setFont("helvetica", "normal");
       pdf.text(metadata.Title, m4.left, y3);
-      y3 += 0.2;
+      y3 += pdf.getLineHeight() * 0.9 / 72;
     }
-    pdf.setFontSize(fontSize - 2);
+    pdf.setFontSize(chordFontSize);
     let t3 = "";
     if (metadata.Author?.trim()) {
       t3 += `by ${metadata.Author}     `;
@@ -29639,7 +29659,9 @@ function renderOnto(pdf, input2, key2, fontSize = 13) {
       t3 += `  ${metadata.BPM} bpm`;
     }
     pdf.text(t3, m4.left, y3);
-    y3 += 0.4;
+    y3 += pdf.getLineHeight() / 72;
+    y3 += 0.2;
+    headerHeight = y3 - m4.top;
   };
   drawHeaders();
   let startingNumberOfPages = pdf.getNumberOfPages();
@@ -29652,7 +29674,7 @@ function renderOnto(pdf, input2, key2, fontSize = 13) {
     if (y3 >= pageHeight - m4.bottom || line.type === "title" && y3 + 0.3 >= pageHeight - m4.bottom) {
       isFirstTitle = true;
       if (col === 0) {
-        y3 = m4.top + 0.6;
+        y3 = m4.top + headerHeight;
         col = 1;
       } else {
         y3 = 0;
@@ -29670,7 +29692,7 @@ function renderOnto(pdf, input2, key2, fontSize = 13) {
       } else {
         isFirstTitle = false;
       }
-      pdf.setFontSize(fontSize);
+      pdf.setFontSize(fontSize2);
       pdf.setFont("helvetica", "bold");
       const t3 = line.line.trim().slice(1).trim();
       pdf.text(t3, m4.left + col * colw, y3);
@@ -29679,46 +29701,46 @@ function renderOnto(pdf, input2, key2, fontSize = 13) {
       pdf.line(m4.left + col * colw, y3, m4.left + col * colw + pdf.getTextWidth(t3), y3);
       y3 += pdf.getLineHeight() / 72;
     } else if (line.type === "chords") {
-      pdf.setFontSize(fontSize - 1);
+      pdf.setFontSize(fontSize2 - 1);
       pdf.setFont("helvetica", "bold");
       const t3 = replaceChords(line.line);
       pdf.text(t3, m4.left + col * colw, y3);
       y3 += pdf.getLineHeight() / 72;
     } else if (line.type === "lyrics") {
-      pdf.setFontSize(fontSize);
+      pdf.setFontSize(fontSize2);
       pdf.setFont("helvetica", "normal");
       const t3 = replaceChords(line.line);
       pdf.text(t3, m4.left + col * colw, y3);
       y3 += pdf.getLineHeight() / 72;
     } else if (line.type === "lyrics+chords") {
-      let chords2 = [...line.chords.matchAll(/[^ ]+/g)].map((v3) => ({ i: v3.index, c: v3[0] }));
+      let chords = [...line.chords.matchAll(/[^ ]+/g)].map((v3) => ({ i: v3.index, c: v3[0] }));
       let curr = "";
       let rendered = [];
-      pdf.setFontSize(fontSize);
+      pdf.setFontSize(fontSize2);
       pdf.setFont("helvetica", "normal");
       if (line.lyrics.length < line.chords.length) {
         line.lyrics += " ".repeat(line.chords.length - line.lyrics.length);
       }
       line.lyrics.split("").forEach((v3, i3) => {
-        let chord = chords2.find((v4) => v4.i === i3);
+        let chord = chords.find((v4) => v4.i === i3);
         if (chord) {
           rendered.push({ chord: chord.c, len: pdf.getTextWidth(curr) });
         }
         curr += v3;
       });
-      pdf.setFontSize(fontSize - 1);
+      pdf.setFontSize(fontSize2 - 1);
       pdf.setFont("helvetica", "bold");
       rendered.filter((v3) => v3.chord).forEach(({ chord, len }) => {
         pdf.text(replaceChords(chord), m4.left + col * colw + len, y3);
       });
       y3 += pdf.getLineHeight() / 72;
-      pdf.setFontSize(fontSize);
+      pdf.setFontSize(fontSize2);
       pdf.setFont("helvetica", "normal");
       pdf.text(line.lyrics, m4.left + col * colw, y3);
       y3 += pdf.getLineHeight() / 72;
     }
   });
-  pdf.setFontSize(fontSize);
+  pdf.setFontSize(fontSize2);
   pdf.setFont("helvetica", "normal");
   let pageCount = pdf.getNumberOfPages() - startingNumberOfPages + 1;
   for (let i3 = 1; i3 <= pageCount; i3++) {
@@ -30667,19 +30689,19 @@ var __webpack_modules__ = {
           const {
             fontColor
           } = this.data.defaultAppearanceData;
-          const fontSize = this.data.defaultAppearanceData.fontSize || DEFAULT_FONT_SIZE;
+          const fontSize2 = this.data.defaultAppearanceData.fontSize || DEFAULT_FONT_SIZE;
           const style = element.style;
           let computedFontSize;
           const BORDER_SIZE = 2;
           const roundToOneDecimal = (x2) => Math.round(10 * x2) / 10;
           if (this.data.multiLine) {
             const height = Math.abs(this.data.rect[3] - this.data.rect[1] - BORDER_SIZE);
-            const numberOfLines = Math.round(height / (util.LINE_FACTOR * fontSize)) || 1;
+            const numberOfLines = Math.round(height / (util.LINE_FACTOR * fontSize2)) || 1;
             const lineHeight = height / numberOfLines;
-            computedFontSize = Math.min(fontSize, roundToOneDecimal(lineHeight / util.LINE_FACTOR));
+            computedFontSize = Math.min(fontSize2, roundToOneDecimal(lineHeight / util.LINE_FACTOR));
           } else {
             const height = Math.abs(this.data.rect[3] - this.data.rect[1] - BORDER_SIZE);
-            computedFontSize = Math.min(fontSize, roundToOneDecimal(height / util.LINE_FACTOR));
+            computedFontSize = Math.min(fontSize2, roundToOneDecimal(height / util.LINE_FACTOR));
           }
           style.fontSize = `calc(${computedFontSize}px * var(--scale-factor))`;
           style.color = util.Util.makeHexColor(fontColor[0], fontColor[1], fontColor[2]);
@@ -32858,7 +32880,7 @@ var __webpack_modules__ = {
               return this._pageInfo.view;
             }
             getViewport({
-              scale: scale2,
+              scale,
               rotation = this.rotate,
               offsetX = 0,
               offsetY = 0,
@@ -32866,7 +32888,7 @@ var __webpack_modules__ = {
             } = {}) {
               return new _display_utils_js__WEBPACK_IMPORTED_MODULE_2__.PageViewport({
                 viewBox: this.view,
-                scale: scale2,
+                scale,
                 rotation,
                 offsetX,
                 offsetY,
@@ -34708,17 +34730,17 @@ var __webpack_modules__ = {
         }
         getPattern(ctx, owner, inverse, pathType) {
           applyBoundingBox(ctx, this._bbox);
-          let scale2;
+          let scale;
           if (pathType === PathType.SHADING) {
-            scale2 = util.Util.singularValueDecompose2dScale((0, display_utils.getCurrentTransform)(ctx));
+            scale = util.Util.singularValueDecompose2dScale((0, display_utils.getCurrentTransform)(ctx));
           } else {
-            scale2 = util.Util.singularValueDecompose2dScale(owner.baseTransform);
+            scale = util.Util.singularValueDecompose2dScale(owner.baseTransform);
             if (this.matrix) {
               const matrixScale = util.Util.singularValueDecompose2dScale(this.matrix);
-              scale2 = [scale2[0] * matrixScale[0], scale2[1] * matrixScale[1]];
+              scale = [scale[0] * matrixScale[0], scale[1] * matrixScale[1]];
             }
           }
-          const temporaryPatternCanvas = this._createMeshCanvas(scale2, pathType === PathType.SHADING ? null : this._background, owner.cachedCanvases);
+          const temporaryPatternCanvas = this._createMeshCanvas(scale, pathType === PathType.SHADING ? null : this._background, owner.cachedCanvases);
           if (pathType !== PathType.SHADING) {
             ctx.setTransform(...owner.baseTransform);
             if (this.matrix) {
@@ -34813,17 +34835,17 @@ var __webpack_modules__ = {
             offsetY: adjustedY0
           };
         }
-        getSizeAndScale(step, realOutputSize, scale2) {
+        getSizeAndScale(step, realOutputSize, scale) {
           step = Math.abs(step);
           const maxSize = Math.max(TilingPattern.MAX_PATTERN_SIZE, realOutputSize);
-          let size = Math.ceil(step * scale2);
+          let size = Math.ceil(step * scale);
           if (size >= maxSize) {
             size = maxSize;
           } else {
-            scale2 = size / step;
+            scale = size / step;
           }
           return {
-            scale: scale2,
+            scale,
             size
           };
         }
@@ -35353,9 +35375,9 @@ var __webpack_modules__ = {
             if (!transform) {
               (0, util.unreachable)("Stroke bounding box must include transform.");
             }
-            const scale2 = util.Util.singularValueDecompose2dScale(transform);
-            const xStrokePad = scale2[0] * this.lineWidth / 2;
-            const yStrokePad = scale2[1] * this.lineWidth / 2;
+            const scale = util.Util.singularValueDecompose2dScale(transform);
+            const xStrokePad = scale[0] * this.lineWidth / 2;
+            const yStrokePad = scale[1] * this.lineWidth / 2;
             box[0] -= xStrokePad;
             box[1] -= yStrokePad;
             box[2] += xStrokePad;
@@ -35553,10 +35575,10 @@ var __webpack_modules__ = {
       }
       function composeSMaskAlpha(maskData, layerData, transferMap) {
         const length = maskData.length;
-        const scale2 = 1 / 255;
+        const scale = 1 / 255;
         for (let i3 = 3; i3 < length; i3 += 4) {
           const alpha = transferMap ? transferMap[maskData[i3]] : maskData[i3];
-          layerData[i3] = layerData[i3] * alpha * scale2 | 0;
+          layerData[i3] = layerData[i3] * alpha * scale | 0;
         }
       }
       function composeSMaskLuminosity(maskData, layerData, transferMap) {
@@ -35602,13 +35624,13 @@ var __webpack_modules__ = {
         ctx.restore();
       }
       function getImageSmoothingEnabled(transform, interpolate) {
-        const scale2 = util.Util.singularValueDecompose2dScale(transform);
-        scale2[0] = Math.fround(scale2[0]);
-        scale2[1] = Math.fround(scale2[1]);
+        const scale = util.Util.singularValueDecompose2dScale(transform);
+        scale[0] = Math.fround(scale[0]);
+        scale[1] = Math.fround(scale[1]);
         const actualScale = Math.fround((globalThis.devicePixelRatio || 1) * display_utils.PixelsPerInch.PDF_TO_CSS_UNITS);
         if (interpolate !== void 0) {
           return interpolate;
-        } else if (scale2[0] <= actualScale || scale2[1] <= actualScale) {
+        } else if (scale[0] <= actualScale || scale[1] <= actualScale) {
           return true;
         }
         return false;
@@ -36240,8 +36262,8 @@ var __webpack_modules__ = {
         setWordSpacing(spacing) {
           this.current.wordSpacing = spacing;
         }
-        setHScale(scale2) {
-          this.current.textHScale = scale2 / 100;
+        setHScale(scale) {
+          this.current.textHScale = scale / 100;
         }
         setLeading(leading) {
           this.current.leading = -leading;
@@ -36313,7 +36335,7 @@ var __webpack_modules__ = {
           const current = this.current;
           const font = current.font;
           const textRenderingMode = current.textRenderingMode;
-          const fontSize = current.fontSize / current.fontSizeScale;
+          const fontSize2 = current.fontSize / current.fontSizeScale;
           const fillStrokeMode = textRenderingMode & util.TextRenderingMode.FILL_STROKE_MASK;
           const isAddToPathSet = !!(textRenderingMode & util.TextRenderingMode.ADD_TO_PATH_FLAG);
           const patternFill = current.patternFill && !font.missingFile;
@@ -36325,7 +36347,7 @@ var __webpack_modules__ = {
             ctx.save();
             ctx.translate(x2, y3);
             ctx.beginPath();
-            addToPath(ctx, fontSize);
+            addToPath(ctx, fontSize2);
             if (patternTransform) {
               ctx.setTransform(...patternTransform);
             }
@@ -36350,7 +36372,7 @@ var __webpack_modules__ = {
               transform: (0, display_utils.getCurrentTransform)(ctx),
               x: x2,
               y: y3,
-              fontSize,
+              fontSize: fontSize2,
               addToPath
             });
           }
@@ -36377,8 +36399,8 @@ var __webpack_modules__ = {
           if (font.isType3Font) {
             return this.showType3Text(glyphs);
           }
-          const fontSize = current.fontSize;
-          if (fontSize === 0) {
+          const fontSize2 = current.fontSize;
+          if (fontSize2 === 0) {
             return void 0;
           }
           const ctx = this.ctx;
@@ -36391,7 +36413,7 @@ var __webpack_modules__ = {
           const vertical = font.vertical;
           const spacingDir = vertical ? 1 : -1;
           const defaultVMetrics = font.defaultVMetrics;
-          const widthAdvanceScale = fontSize * current.fontMatrix[0];
+          const widthAdvanceScale = fontSize2 * current.fontMatrix[0];
           const simpleFillText = current.textRenderingMode === util.TextRenderingMode.FILL && !font.disableFontFace && !current.patternFill;
           ctx.save();
           ctx.transform(...current.textMatrix);
@@ -36410,14 +36432,14 @@ var __webpack_modules__ = {
             ctx.fillStyle = pattern;
           }
           let lineWidth = current.lineWidth;
-          const scale2 = current.textMatrixScale;
-          if (scale2 === 0 || lineWidth === 0) {
+          const scale = current.textMatrixScale;
+          if (scale === 0 || lineWidth === 0) {
             const fillStrokeMode = current.textRenderingMode & util.TextRenderingMode.FILL_STROKE_MASK;
             if (fillStrokeMode === util.TextRenderingMode.STROKE || fillStrokeMode === util.TextRenderingMode.FILL_STROKE) {
               lineWidth = this.getSinglePixelWidth();
             }
           } else {
-            lineWidth /= scale2;
+            lineWidth /= scale;
           }
           if (fontSizeScale !== 1) {
             ctx.scale(fontSizeScale, fontSizeScale);
@@ -36441,7 +36463,7 @@ var __webpack_modules__ = {
           for (i3 = 0; i3 < glyphsLength; ++i3) {
             const glyph = glyphs[i3];
             if (typeof glyph === "number") {
-              x2 += spacingDir * glyph * fontSize / 1e3;
+              x2 += spacingDir * glyph * fontSize2 / 1e3;
               continue;
             }
             let restoreNeeded = false;
@@ -36462,7 +36484,7 @@ var __webpack_modules__ = {
               scaledY = 0;
             }
             if (font.remeasure && width > 0) {
-              const measuredWidth = ctx.measureText(character).width * 1e3 / fontSize * fontSizeScale;
+              const measuredWidth = ctx.measureText(character).width * 1e3 / fontSize2 * fontSizeScale;
               if (width < measuredWidth && this.isFontSubpixelAAEnabled) {
                 const characterScaleX = width / measuredWidth;
                 restoreNeeded = true;
@@ -36470,7 +36492,7 @@ var __webpack_modules__ = {
                 ctx.scale(characterScaleX, 1);
                 scaledX /= characterScaleX;
               } else if (width !== measuredWidth) {
-                scaledX += (width - measuredWidth) / 2e3 * fontSize / fontSizeScale;
+                scaledX += (width - measuredWidth) / 2e3 * fontSize2 / fontSizeScale;
               }
             }
             if (this.contentVisible && (glyph.isInFont || font.missingFile)) {
@@ -36479,8 +36501,8 @@ var __webpack_modules__ = {
               } else {
                 this.paintChar(character, scaledX, scaledY, patternTransform);
                 if (accent) {
-                  const scaledAccentX = scaledX + fontSize * accent.offset.x / fontSizeScale;
-                  const scaledAccentY = scaledY - fontSize * accent.offset.y / fontSizeScale;
+                  const scaledAccentX = scaledX + fontSize2 * accent.offset.x / fontSizeScale;
+                  const scaledAccentY = scaledY - fontSize2 * accent.offset.y / fontSizeScale;
                   this.paintChar(accent.fontChar, scaledAccentX, scaledAccentY, patternTransform);
                 }
               }
@@ -36504,7 +36526,7 @@ var __webpack_modules__ = {
           const ctx = this.ctx;
           const current = this.current;
           const font = current.font;
-          const fontSize = current.fontSize;
+          const fontSize2 = current.fontSize;
           const fontDirection = current.fontDirection;
           const spacingDir = font.vertical ? 1 : -1;
           const charSpacing = current.charSpacing;
@@ -36514,7 +36536,7 @@ var __webpack_modules__ = {
           const glyphsLength = glyphs.length;
           const isTextInvisible = current.textRenderingMode === util.TextRenderingMode.INVISIBLE;
           let i3, glyph, width, spacingLength;
-          if (isTextInvisible || fontSize === 0) {
+          if (isTextInvisible || fontSize2 === 0) {
             return;
           }
           this._cachedScaleForStroking[0] = -1;
@@ -36526,7 +36548,7 @@ var __webpack_modules__ = {
           for (i3 = 0; i3 < glyphsLength; ++i3) {
             glyph = glyphs[i3];
             if (typeof glyph === "number") {
-              spacingLength = spacingDir * glyph * fontSize / 1e3;
+              spacingLength = spacingDir * glyph * fontSize2 / 1e3;
               this.ctx.translate(spacingLength, 0);
               current.x += spacingLength * textHScale;
               continue;
@@ -36540,13 +36562,13 @@ var __webpack_modules__ = {
             if (this.contentVisible) {
               this.processingType3 = glyph;
               this.save();
-              ctx.scale(fontSize, fontSize);
+              ctx.scale(fontSize2, fontSize2);
               ctx.transform(...fontMatrix);
               this.executeOperatorList(operatorList);
               this.restore();
             }
             const transformed = util.Util.applyTransform([glyph.width, 0], fontMatrix);
-            width = transformed[0] * fontSize + spacing;
+            width = transformed[0] * fontSize2 + spacing;
             ctx.translate(width, 0);
             current.x += width * textHScale;
           }
@@ -37151,9 +37173,9 @@ var __webpack_modules__ = {
           }
           ctx.scale(scaleX, scaleY);
           if (dashes.length > 0) {
-            const scale2 = Math.max(scaleX, scaleY);
-            ctx.setLineDash(dashes.map((x2) => x2 / scale2));
-            ctx.lineDashOffset /= scale2;
+            const scale = Math.max(scaleX, scaleY);
+            ctx.setLineDash(dashes.map((x2) => x2 / scale));
+            ctx.lineDashOffset /= scale;
           }
           ctx.stroke();
           if (saveRestore) {
@@ -37612,14 +37634,14 @@ var __webpack_modules__ = {
       class PageViewport {
         constructor({
           viewBox,
-          scale: scale2,
+          scale,
           rotation,
           offsetX = 0,
           offsetY = 0,
           dontFlip = false
         }) {
           this.viewBox = viewBox;
-          this.scale = scale2;
+          this.scale = scale;
           this.rotation = rotation;
           this.offsetX = offsetX;
           this.offsetY = offsetY;
@@ -37665,17 +37687,17 @@ var __webpack_modules__ = {
           let offsetCanvasX, offsetCanvasY;
           let width, height;
           if (rotateA === 0) {
-            offsetCanvasX = Math.abs(centerY - viewBox[1]) * scale2 + offsetX;
-            offsetCanvasY = Math.abs(centerX - viewBox[0]) * scale2 + offsetY;
-            width = (viewBox[3] - viewBox[1]) * scale2;
-            height = (viewBox[2] - viewBox[0]) * scale2;
+            offsetCanvasX = Math.abs(centerY - viewBox[1]) * scale + offsetX;
+            offsetCanvasY = Math.abs(centerX - viewBox[0]) * scale + offsetY;
+            width = (viewBox[3] - viewBox[1]) * scale;
+            height = (viewBox[2] - viewBox[0]) * scale;
           } else {
-            offsetCanvasX = Math.abs(centerX - viewBox[0]) * scale2 + offsetX;
-            offsetCanvasY = Math.abs(centerY - viewBox[1]) * scale2 + offsetY;
-            width = (viewBox[2] - viewBox[0]) * scale2;
-            height = (viewBox[3] - viewBox[1]) * scale2;
+            offsetCanvasX = Math.abs(centerX - viewBox[0]) * scale + offsetX;
+            offsetCanvasY = Math.abs(centerY - viewBox[1]) * scale + offsetY;
+            width = (viewBox[2] - viewBox[0]) * scale;
+            height = (viewBox[3] - viewBox[1]) * scale;
           }
-          this.transform = [rotateA * scale2, rotateB * scale2, rotateC * scale2, rotateD * scale2, offsetCanvasX - rotateA * scale2 * centerX - rotateC * scale2 * centerY, offsetCanvasY - rotateB * scale2 * centerX - rotateD * scale2 * centerY];
+          this.transform = [rotateA * scale, rotateB * scale, rotateC * scale, rotateD * scale, offsetCanvasX - rotateA * scale * centerX - rotateC * scale * centerY, offsetCanvasY - rotateB * scale * centerX - rotateD * scale * centerY];
           this.width = width;
           this.height = height;
         }
@@ -37691,7 +37713,7 @@ var __webpack_modules__ = {
           });
         }
         clone({
-          scale: scale2 = this.scale,
+          scale = this.scale,
           rotation = this.rotation,
           offsetX = this.offsetX,
           offsetY = this.offsetY,
@@ -37699,7 +37721,7 @@ var __webpack_modules__ = {
         } = {}) {
           return new PageViewport({
             viewBox: this.viewBox.slice(),
-            scale: scale2,
+            scale,
             rotation,
             offsetX,
             offsetY,
@@ -37857,7 +37879,7 @@ var __webpack_modules__ = {
         }
       }
       function getXfaPageViewport(xfaPage, {
-        scale: scale2 = 1,
+        scale = 1,
         rotation = 0
       }) {
         const {
@@ -37867,7 +37889,7 @@ var __webpack_modules__ = {
         const viewBox = [0, 0, parseInt(width), parseInt(height)];
         return new PageViewport({
           viewBox,
-          scale: scale2,
+          scale,
           rotation
         });
       }
@@ -38221,7 +38243,7 @@ var __webpack_modules__ = {
         get propertiesToUpdate() {
           return [[util.AnnotationEditorParamsType.FREETEXT_SIZE, this.#fontSize], [util.AnnotationEditorParamsType.FREETEXT_COLOR, this.#color]];
         }
-        #updateFontSize(fontSize) {
+        #updateFontSize(fontSize2) {
           const setFontsize = (size) => {
             this.editorDiv.style.fontSize = `calc(${size}px * var(--scale-factor))`;
             this.translate(0, -(size - this.#fontSize) * this.parentScale);
@@ -38231,7 +38253,7 @@ var __webpack_modules__ = {
           const savedFontsize = this.#fontSize;
           this.addCommands({
             cmd: () => {
-              setFontsize(fontSize);
+              setFontsize(fontSize2);
             },
             undo: () => {
               setFontsize(savedFontsize);
@@ -38261,8 +38283,8 @@ var __webpack_modules__ = {
           this._uiManager.translateSelectedEditors(x2, y3, true);
         }
         getInitialTranslation() {
-          const scale2 = this.parentScale;
-          return [-FreeTextEditor._internalPadding * scale2, -(FreeTextEditor._internalPadding + this.#fontSize) * scale2];
+          const scale = this.parentScale;
+          return [-FreeTextEditor._internalPadding * scale, -(FreeTextEditor._internalPadding + this.#fontSize) * scale];
         }
         rebuild() {
           if (!this.parent) {
@@ -38541,7 +38563,7 @@ var __webpack_modules__ = {
             const {
               data: {
                 defaultAppearanceData: {
-                  fontSize,
+                  fontSize: fontSize2,
                   fontColor
                 },
                 rect,
@@ -38562,7 +38584,7 @@ var __webpack_modules__ = {
             initialData = data = {
               annotationType: util.AnnotationEditorType.FREETEXT,
               color: Array.from(fontColor),
-              fontSize,
+              fontSize: fontSize2,
               value: textContent.join("\n"),
               position: textPosition,
               pageIndex: pageNumber - 1,
@@ -38616,12 +38638,12 @@ var __webpack_modules__ = {
         #hasElementChanged(serialized) {
           const {
             value,
-            fontSize,
+            fontSize: fontSize2,
             color,
             rect,
             pageIndex
           } = this.#initialData;
-          return serialized.value !== value || serialized.fontSize !== fontSize || serialized.rect.some((x2, i3) => Math.abs(x2 - rect[i3]) >= 1) || serialized.color.some((c4, i3) => c4 !== color[i3]) || serialized.pageIndex !== pageIndex;
+          return serialized.value !== value || serialized.fontSize !== fontSize2 || serialized.rect.some((x2, i3) => Math.abs(x2 - rect[i3]) >= 1) || serialized.color.some((c4, i3) => c4 !== color[i3]) || serialized.pageIndex !== pageIndex;
         }
         #cheatInitialRect(delayed = false) {
           if (!this.annotationElementId) {
@@ -41158,11 +41180,11 @@ var __webpack_modules__ = {
           this.fixAndSetPosition();
         }
         getRect(tx, ty) {
-          const scale2 = this.parentScale;
+          const scale = this.parentScale;
           const [pageWidth, pageHeight] = this.pageDimensions;
           const [pageX, pageY] = this.pageTranslation;
-          const shiftX = tx / scale2;
-          const shiftY = ty / scale2;
+          const shiftX = tx / scale;
+          const shiftY = ty / scale;
           const x2 = this.x * pageWidth;
           const y3 = this.y * pageHeight;
           const width = this.width * pageWidth;
@@ -42192,10 +42214,10 @@ var __webpack_modules__ = {
           this.#editorsToRescale.delete(editor);
         }
         onScaleChanging({
-          scale: scale2
+          scale
         }) {
           this.commitOrRemove();
-          this.viewParameters.realScale = scale2 * _display_utils_js__WEBPACK_IMPORTED_MODULE_1__.PixelsPerInch.PDF_TO_CSS_UNITS;
+          this.viewParameters.realScale = scale * _display_utils_js__WEBPACK_IMPORTED_MODULE_1__.PixelsPerInch.PDF_TO_CSS_UNITS;
           for (const editor of this.#editorsToRescale) {
             editor.onScaleChanging();
           }
@@ -44884,7 +44906,7 @@ var __webpack_modules__ = {
       function layout(params2) {
         const {
           div,
-          scale: scale2,
+          scale,
           properties,
           ctx,
           prevFontSize,
@@ -44900,18 +44922,18 @@ var __webpack_modules__ = {
           } = style;
           const {
             canvasWidth,
-            fontSize
+            fontSize: fontSize2
           } = properties;
-          if (prevFontSize !== fontSize || prevFontFamily !== fontFamily) {
-            ctx.font = `${fontSize * scale2}px ${fontFamily}`;
-            params2.prevFontSize = fontSize;
+          if (prevFontSize !== fontSize2 || prevFontFamily !== fontFamily) {
+            ctx.font = `${fontSize2 * scale}px ${fontFamily}`;
+            params2.prevFontSize = fontSize2;
             params2.prevFontFamily = fontFamily;
           }
           const {
             width
           } = ctx.measureText(div.textContent);
           if (width > 0) {
-            transform = `scaleX(${canvasWidth * scale2 / width})`;
+            transform = `scaleX(${canvasWidth * scale / width})`;
           }
         }
         if (properties.angle !== 0) {
@@ -45085,12 +45107,12 @@ var __webpack_modules__ = {
         }
         if (mustRescale) {
           const ctx = getCtx(0, isOffscreenCanvasSupported);
-          const scale2 = viewport.scale * (globalThis.devicePixelRatio || 1);
+          const scale = viewport.scale * (globalThis.devicePixelRatio || 1);
           const params2 = {
             prevFontSize: null,
             prevFontFamily: null,
             div: null,
-            scale: scale2,
+            scale,
             properties: null,
             ctx
           };
@@ -47593,6 +47615,7 @@ var $2 = (q2) => {
 };
 var input = $2("#input");
 var key = $2("#key");
+var fontSize = $2("#font-size");
 var pages = $2("#pages");
 var download = $2("#download");
 var canvases = [];
@@ -47603,10 +47626,18 @@ if (song) {
   const decompressed = (0, import_lz_string.decompressFromEncodedURIComponent)(song);
   input.value = decompressed;
 }
+var keySaved = params.get("k");
+if (keySaved) {
+  key.value = keySaved;
+}
+var fontSaved = params.get("f");
+if (fontSaved) {
+  fontSize.value = fontSaved;
+}
 var update = async () => {
   const url = (0, import_lz_string.compressToEncodedURIComponent)(input.value);
-  history.replaceState(null, "", "?s=" + url);
-  const pdf = render(input.value, key.value);
+  history.replaceState(null, "", `?k=${encodeURIComponent(key.value)}&f=${encodeURIComponent(fontSize.value)}&s=${url}`);
+  const pdf = render(input.value, key.value, +fontSize.value);
   download.href = URL.createObjectURL(new Blob([pdf.output()], {
     type: "application/pdf"
   }));
@@ -47638,9 +47669,29 @@ var update = async () => {
     await renderTask.promise;
   }
 };
-update();
-input.addEventListener("input", () => update());
-key.addEventListener("change", () => update());
+var isUpdating = false;
+var updateRequired = false;
+var updatePromise = new Promise((resolve) => {
+  resolve();
+});
+async function queueUpdate() {
+  if (updateRequired) {
+    return;
+  }
+  if (isUpdating) {
+    updateRequired = true;
+    await updatePromise;
+    updateRequired = false;
+  }
+  isUpdating = true;
+  updatePromise = update();
+  await updatePromise;
+  isUpdating = false;
+}
+queueUpdate();
+input.addEventListener("input", () => queueUpdate());
+key.addEventListener("change", () => queueUpdate());
+fontSize.addEventListener("change", () => queueUpdate());
 /*! Bundled license information:
 
 html2canvas/dist/html2canvas.js:

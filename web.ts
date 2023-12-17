@@ -12,7 +12,8 @@ const $ = <T extends HTMLElement>(q: string) => {
 }
 
 const input = $<HTMLTextAreaElement>('#input')
-const key = $<HTMLTextAreaElement>('#key')
+const key = $<HTMLInputElement>('#key')
+const fontSize = $<HTMLInputElement>('#font-size')
 const pages = $<HTMLDivElement>("#pages");
 const download = $<HTMLAnchorElement>("#download");
 
@@ -27,12 +28,21 @@ if (song) {
   const decompressed = decompressFromEncodedURIComponent(song);
   input.value = decompressed;
 }
+const keySaved = params.get('k');
+if (keySaved) {
+  key.value = keySaved;
+}
+
+const fontSaved = params.get('f');
+if (fontSaved) {
+  fontSize.value = fontSaved;
+}
 
 const update = async () => {
   const url = compressToEncodedURIComponent(input.value);
-  history.replaceState(null, '', '?s='+url);
+  history.replaceState(null, '', `?k=${encodeURIComponent(key.value)}&f=${encodeURIComponent(fontSize.value)}&s=${url}`);
 
-  const pdf = render(input.value, key.value);
+  const pdf = render(input.value, key.value, +fontSize.value);
   download.href = URL.createObjectURL(new Blob([pdf.output()], {
     type: 'application/pdf',
   }));
@@ -71,7 +81,28 @@ const update = async () => {
   }
 }
 
-update()
+let isUpdating = false;
+let updateRequired = false;
+let updatePromise: Promise<void> = new Promise((resolve) => {resolve()});
+async function queueUpdate() {
+  if (updateRequired) {
+    return;
+  }
 
-input.addEventListener('input', () => update())
-key.addEventListener('change', () => update())
+  if (isUpdating) {
+    updateRequired = true;
+    await updatePromise;
+    updateRequired = false;
+  }
+  isUpdating = true;
+  updatePromise = update();
+  await updatePromise;
+  isUpdating = false;
+}
+
+
+queueUpdate()
+
+input.addEventListener('input', () => queueUpdate())
+key.addEventListener('change', () => queueUpdate())
+fontSize.addEventListener('change', () => queueUpdate())

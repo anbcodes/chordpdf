@@ -13,6 +13,37 @@
     textarea {
       font-family: monospace;
     }
+    .outer {
+      display: flex;
+      justify-content: center;
+      margin: 0px 10px;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      max-width: 1400px;
+    }
+    .chords {
+      min-width: 440px;
+      margin: 2px;
+      margin-right: 10px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    @media only screen and (max-width: 500px) {
+      .chords {
+        min-width: 0px;
+      }
+    }
+    .result {
+      margin: 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-grow: 1;
+    }
   </style>
 </head>
 <body>
@@ -29,23 +60,47 @@
       A is 1, B is 2, C# is 3, D is 4, etc.
     </p>
     <p><a href="https://github.com/anbcodes/chordpdf">Github</a></p>
-    <h2>Chord chart</h2>
-    <label for="key">Key</label>
-    <select name="key" id="key">
-      <option value="">Numbers</option>
-      <option value="A">A</option>
-      <option value="Bb">Bb</option>
-      <option value="C">C</option>
-      <option value="C#">C#</option>
-      <option value="D">D</option>
-      <option value="Eb">Eb</option>
-      <option value="E">E</option>
-      <option value="F">F</option>
-      <option value="F#">F#</option>
-      <option value="G">G</option>
-      <option value="G#">G#</option>
-    </select>
-    <textarea id="input" rows="40">
+    </main>
+    <div class="outer">
+    <div class="container">
+      <div class="chords">
+        <h2>Chord chart</h2>
+        <label for="key">Key</label>
+        <select name="key" id="key">
+          <option value="A">A</option>
+          <option value="Ab">Ab</option>
+          <option value="B">B</option>
+          <option value="Bb">Bb</option>
+          <option value="C">C</option>
+          <option value="Cb">Cb</option>
+          <option value="C#">C#</option>
+          <option value="D">D</option>
+          <option value="Db">Db</option>
+          <option value="E">E</option>
+          <option value="Eb">Eb</option>
+          <option value="F">F</option>
+          <option value="F#">F#</option>
+          <option value="G">G</option>
+          <option value="Gb">Gb</option>
+          <option value="Abm">Abm</option>
+          <option value="Am">Am</option>
+          <option value="A#m">A#m</option>
+          <option value="Bbm">Bbm</option>
+          <option value="Bm">Bm</option>
+          <option value="Cm">Cm</option>
+          <option value="C#m">C#m</option>
+          <option value="Dm">Dm</option>
+          <option value="D#m">D#m</option>
+          <option value="Ebm">Ebm</option>
+          <option value="Em">Em</option>
+          <option value="Fm">Fm</option>
+          <option value="F#m">F#m</option>
+          <option value="Gm">Gm</option>
+          <option value="G#m">G#m</option>
+        </select>
+        <label for="font-size">Font size</label>
+        <input id="font-size" type="number" value="13">
+        <textarea id="input" rows="40">
 Key: C
 Title: Example
 Author: Example Author
@@ -63,13 +118,17 @@ And finally
 
 # Interlude
 (1) / / / | / / / /      
-    </textarea>
-    <h2>Result</h2>
-    <a id="download">Download</a>
-    <div id="pages">
-
+        </textarea>
+      </div>
+      <div class="result">
+        <h2>Result</h2>
+        <a id="download">Download</a>
+        <div id="pages">
+    
+        </div>
+      </div>
     </div>
-  </main>
+  </div>
   <script type="module" src="./web.js"></script>
 </body>
 </html>

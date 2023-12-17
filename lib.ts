@@ -15,6 +15,40 @@ const chords = [
   'G#',
 ]
 
+export const chordMappings: Record<string, string[]> = {
+  C: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+  G: ['G', 'A', 'B', 'C', 'D', 'E', 'F#'],
+  D: ['D', 'E', 'F#', 'G', 'A', 'B', 'C#'],
+  A: ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#'],
+  E: ['E', 'F#', 'G#', 'A', 'B', 'C#', 'D#'],
+  B: ['B', 'C#', 'D#', 'E', 'F#', 'G#', 'A#'],
+  'F#': ['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'E#'],
+  'C#': ['C#', 'D#', 'E#', 'F#', 'G#', 'A#', 'B#'],
+  F: ['F', 'G', 'A', 'Bb', 'C', 'D', 'E'],
+  Bb: ['Bb', 'C', 'D', 'Eb', 'F', 'G', 'A'],
+  Eb: ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'D'],
+  Ab: ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G'],
+  Db: ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C'],
+  Gb: ['Gb', 'Ab', 'Bb', 'Cb', 'Db', 'Eb', 'F'],
+  Cb: ['Cb', 'Db', 'Eb', 'Fb', 'Gb', 'Ab', 'Bb'],
+
+  Am: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+  Em: ['E', 'F#', 'G', 'A', 'B', 'C', 'D'],
+  Bm: ['B', 'C#', 'D', 'E', 'F#', 'G', 'A'],
+  'F#m': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'E'],
+  'C#m': ['C#', 'D#', 'E', 'F#', 'G#', 'A', 'B'],
+  'G#m': ['G#', 'A#', 'B', 'C#', 'D#', 'E', 'F#'],
+  'D#m': ['D#', 'E#', 'F#', 'G#', 'A#', 'B', 'C#'],
+  'A#m': ['A#', 'B#', 'C#', 'D#', 'E#', 'F#', 'G#'],
+  'Dm': ['D', 'E', 'F', 'G', 'A', 'Bb', 'C'],
+  'Gm': ['G', 'A', 'Bb', 'C', 'D', 'Eb', 'F'],
+  'Cm': ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'Bb'],
+  'Fm': ['F', 'G', 'Ab', 'Bb', 'C', 'Db', 'Eb'],
+  'Bbm': ['Bb', 'C', 'Db', 'Eb', 'F', 'Gb', 'Ab'],
+  'Ebm': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'Cb', 'Db'],
+  'Abm': ['Ab', 'Bb', 'Cb', 'Db', 'Eb', 'Fb', 'Gb'],
+}
+
 let mapping: Record<any, any> = {
   1: 1,
   2: 2,
@@ -64,13 +98,14 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string, fontSize = 1
   const {metadata, linesRaw} = getMetadata(input);
   
   if (key) {
-    const startingIndex = chords.indexOf(key.replace('m', ''))
-    if (startingIndex === -1) {
+    const map = chordMappings[key];
+    if (!map) {
       console.error("Invalid key:", key)
-      console.error("Valid keys:", chords.join(' '))
+      console.error("Valid keys:", Object.keys(chordMappings).join(' '))
+      // This is an error on browsers, but I don't want to fix it
       process.exit(1);
     }
-    scale.forEach((v, i) => mapping[i + 1] = chords[(v + startingIndex) % 12]);
+    map.forEach((v, i) => mapping[i + 1] = v);
   }
   
   
@@ -94,15 +129,20 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string, fontSize = 1
   
   let y = 0;
   
+  let chordFontSize = Math.round(fontSize * 0.9);
+  let titleFontSize = Math.round(fontSize * 2);
+
+  let headerHeight = 0;
+  
   const drawHeaders = () => {
     y = m.top;
     if (metadata.Title) {
-      pdf.setFontSize(30);
+      pdf.setFontSize(titleFontSize);
       pdf.setFont('helvetica', 'normal');
       pdf.text(metadata.Title, m.left, y);
-      y += 0.2;
+      y += pdf.getLineHeight() * 0.9 / 72;
     }
-    pdf.setFontSize(fontSize - 2);
+    pdf.setFontSize(chordFontSize);
     let t = '';
     if (metadata.Author?.trim()) {
       t += `by ${metadata.Author}     `
@@ -115,7 +155,9 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string, fontSize = 1
       t += `  ${metadata.BPM} bpm`
     }
     pdf.text(t, m.left, y);
-    y += 0.4;
+    y += pdf.getLineHeight() / 72
+    y += 0.2;
+    headerHeight = y - m.top
   }
   
   drawHeaders();
@@ -133,7 +175,7 @@ export function renderOnto(pdf: jsPDF, input: string, key?: string, fontSize = 1
     if (y >= pageHeight - m.bottom || (line.type === 'title' && y + 0.3 >= pageHeight - m.bottom)) {
       isFirstTitle = true;
       if (col === 0) {
-        y = m.top + 0.6;
+        y = m.top + headerHeight;
         col = 1;
       } else {
         y = 0;

@@ -18869,9 +18869,9 @@ var require_lib2 = __commonJS({
         }
       }, {
         key: "parseScale",
-        value: function parseScale(scale2) {
+        value: function parseScale(scale) {
           var defaultValue = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 1;
-          var _toNumbers3 = toNumbers(scale2), _toNumbers4 = _slicedToArray__default["default"](_toNumbers3, 2), _toNumbers4$ = _toNumbers4[0], x = _toNumbers4$ === void 0 ? defaultValue : _toNumbers4$, _toNumbers4$2 = _toNumbers4[1], y = _toNumbers4$2 === void 0 ? x : _toNumbers4$2;
+          var _toNumbers3 = toNumbers(scale), _toNumbers4 = _slicedToArray__default["default"](_toNumbers3, 2), _toNumbers4$ = _toNumbers4[0], x = _toNumbers4$ === void 0 ? defaultValue : _toNumbers4$, _toNumbers4$2 = _toNumbers4[1], y = _toNumbers4$2 === void 0 ? x : _toNumbers4$2;
           return new Point2(x, y);
         }
       }, {
@@ -19498,13 +19498,13 @@ var require_lib2 = __commonJS({
       return Rotate2;
     }();
     var Scale = /* @__PURE__ */ function() {
-      function Scale2(_, scale2, transformOrigin) {
+      function Scale2(_, scale, transformOrigin) {
         _classCallCheck__default["default"](this, Scale2);
         this.type = "scale";
         this.scale = null;
         this.originX = null;
         this.originY = null;
-        var scaleSize = Point.parseScale(scale2);
+        var scaleSize = Point.parseScale(scale);
         if (scaleSize.x === 0 || scaleSize.y === 0) {
           scaleSize.x = PSEUDO_ZERO;
           scaleSize.y = PSEUDO_ZERO;
@@ -21328,14 +21328,14 @@ var require_lib2 = __commonJS({
             var ctxFont = Font.parse(document2.ctx.font);
             var fontSize = parent.getStyle("font-size").getNumber(ctxFont.fontSize);
             var fontStyle = parent.getStyle("font-style").getString(ctxFont.fontStyle);
-            var scale2 = fontSize / unitsPerEm;
+            var scale = fontSize / unitsPerEm;
             var text = customFont.isRTL ? renderText.split("").reverse().join("") : renderText;
             var dx = toNumbers(parent.getAttribute("dx").getString());
             var len = text.length;
             for (var i = 0; i < len; i++) {
               var glyph = this.getGlyph(customFont, text, i);
               ctx.translate(this.x, this.y);
-              ctx.scale(scale2, -scale2);
+              ctx.scale(scale, -scale);
               var lw = ctx.lineWidth;
               ctx.lineWidth = ctx.lineWidth * unitsPerEm / fontSize;
               if (fontStyle === "italic") {
@@ -21346,7 +21346,7 @@ var require_lib2 = __commonJS({
                 ctx.transform(1, 0, -0.4, 1, 0, 0);
               }
               ctx.lineWidth = lw;
-              ctx.scale(1 / scale2, -1 / scale2);
+              ctx.scale(1 / scale, -1 / scale);
               ctx.translate(-this.x, -this.y);
               this.x += fontSize * (glyph.horizAdvX || customFont.horizAdvX) / unitsPerEm;
               if (typeof dx[i] !== "undefined" && !isNaN(dx[i])) {
@@ -34131,20 +34131,38 @@ var import_minimist = __toESM(require_minimist());
 
 // lib.ts
 var import_jspdf = __toESM(require_jspdf_node_min());
-var chords = [
-  "A",
-  "Bb",
-  "B",
-  "C",
-  "C#",
-  "D",
-  "Eb",
-  "E",
-  "F",
-  "F#",
-  "G",
-  "G#"
-];
+var chordMappings = {
+  C: ["C", "D", "E", "F", "G", "A", "B"],
+  G: ["G", "A", "B", "C", "D", "E", "F#"],
+  D: ["D", "E", "F#", "G", "A", "B", "C#"],
+  A: ["A", "B", "C#", "D", "E", "F#", "G#"],
+  E: ["E", "F#", "G#", "A", "B", "C#", "D#"],
+  B: ["B", "C#", "D#", "E", "F#", "G#", "A#"],
+  "F#": ["F#", "G#", "A#", "B", "C#", "D#", "E#"],
+  "C#": ["C#", "D#", "E#", "F#", "G#", "A#", "B#"],
+  F: ["F", "G", "A", "Bb", "C", "D", "E"],
+  Bb: ["Bb", "C", "D", "Eb", "F", "G", "A"],
+  Eb: ["Eb", "F", "G", "Ab", "Bb", "C", "D"],
+  Ab: ["Ab", "Bb", "C", "Db", "Eb", "F", "G"],
+  Db: ["Db", "Eb", "F", "Gb", "Ab", "Bb", "C"],
+  Gb: ["Gb", "Ab", "Bb", "Cb", "Db", "Eb", "F"],
+  Cb: ["Cb", "Db", "Eb", "Fb", "Gb", "Ab", "Bb"],
+  Am: ["A", "B", "C", "D", "E", "F", "G"],
+  Em: ["E", "F#", "G", "A", "B", "C", "D"],
+  Bm: ["B", "C#", "D", "E", "F#", "G", "A"],
+  "F#m": ["F#", "G#", "A", "B", "C#", "D", "E"],
+  "C#m": ["C#", "D#", "E", "F#", "G#", "A", "B"],
+  "G#m": ["G#", "A#", "B", "C#", "D#", "E", "F#"],
+  "D#m": ["D#", "E#", "F#", "G#", "A#", "B", "C#"],
+  "A#m": ["A#", "B#", "C#", "D#", "E#", "F#", "G#"],
+  "Dm": ["D", "E", "F", "G", "A", "Bb", "C"],
+  "Gm": ["G", "A", "Bb", "C", "D", "Eb", "F"],
+  "Cm": ["C", "D", "Eb", "F", "G", "Ab", "Bb"],
+  "Fm": ["F", "G", "Ab", "Bb", "C", "Db", "Eb"],
+  "Bbm": ["Bb", "C", "Db", "Eb", "F", "Gb", "Ab"],
+  "Ebm": ["Eb", "F", "Gb", "Ab", "Bb", "Cb", "Db"],
+  "Abm": ["Ab", "Bb", "Cb", "Db", "Eb", "Fb", "Gb"]
+};
 var mapping = {
   1: 1,
   2: 2,
@@ -34154,7 +34172,6 @@ var mapping = {
   6: 6,
   7: 7
 };
-var scale = [0, 2, 4, 5, 7, 9, 11];
 function getMetadata(input2) {
   const [metadataRaw, ...linesRaw] = input2.split("\n#");
   return metadataRaw?.startsWith("#") ? {
@@ -34186,13 +34203,13 @@ function render(input2, keys, fontSize = 13) {
 function renderOnto(pdf2, input2, key2, fontSize = 13) {
   const { metadata, linesRaw } = getMetadata(input2);
   if (key2) {
-    const startingIndex = chords.indexOf(key2.replace("m", ""));
-    if (startingIndex === -1) {
+    const map = chordMappings[key2];
+    if (!map) {
       console.error("Invalid key:", key2);
-      console.error("Valid keys:", chords.join(" "));
+      console.error("Valid keys:", Object.keys(chordMappings).join(" "));
       process.exit(1);
     }
-    scale.forEach((v, i) => mapping[i + 1] = chords[(v + startingIndex) % 12]);
+    map.forEach((v, i) => mapping[i + 1] = v);
   }
   const replaceChords = (c) => c.replace(/(?<![1-7a-z#])[1-7]/g, (v) => mapping[v]);
   const lines = ("#" + linesRaw.join("\n#")).split("\n").filter((v) => v).map((v) => ({
@@ -34209,15 +34226,18 @@ function renderOnto(pdf2, input2, key2, fontSize = 13) {
     right: 0.5
   };
   let y = 0;
+  let chordFontSize = Math.round(fontSize * 0.9);
+  let titleFontSize = Math.round(fontSize * 2);
+  let headerHeight = 0;
   const drawHeaders = () => {
     y = m.top;
     if (metadata.Title) {
-      pdf2.setFontSize(30);
+      pdf2.setFontSize(titleFontSize);
       pdf2.setFont("helvetica", "normal");
       pdf2.text(metadata.Title, m.left, y);
-      y += 0.2;
+      y += pdf2.getLineHeight() * 0.9 / 72;
     }
-    pdf2.setFontSize(fontSize - 2);
+    pdf2.setFontSize(chordFontSize);
     let t = "";
     if (metadata.Author?.trim()) {
       t += `by ${metadata.Author}     `;
@@ -34230,7 +34250,9 @@ function renderOnto(pdf2, input2, key2, fontSize = 13) {
       t += `  ${metadata.BPM} bpm`;
     }
     pdf2.text(t, m.left, y);
-    y += 0.4;
+    y += pdf2.getLineHeight() / 72;
+    y += 0.2;
+    headerHeight = y - m.top;
   };
   drawHeaders();
   let startingNumberOfPages = pdf2.getNumberOfPages();
@@ -34243,7 +34265,7 @@ function renderOnto(pdf2, input2, key2, fontSize = 13) {
     if (y >= pageHeight - m.bottom || line.type === "title" && y + 0.3 >= pageHeight - m.bottom) {
       isFirstTitle = true;
       if (col === 0) {
-        y = m.top + 0.6;
+        y = m.top + headerHeight;
         col = 1;
       } else {
         y = 0;
@@ -34282,7 +34304,7 @@ function renderOnto(pdf2, input2, key2, fontSize = 13) {
       pdf2.text(t, m.left + col * colw, y);
       y += pdf2.getLineHeight() / 72;
     } else if (line.type === "lyrics+chords") {
-      let chords2 = [...line.chords.matchAll(/[^ ]+/g)].map((v) => ({ i: v.index, c: v[0] }));
+      let chords = [...line.chords.matchAll(/[^ ]+/g)].map((v) => ({ i: v.index, c: v[0] }));
       let curr = "";
       let rendered = [];
       pdf2.setFontSize(fontSize);
@@ -34291,7 +34313,7 @@ function renderOnto(pdf2, input2, key2, fontSize = 13) {
         line.lyrics += " ".repeat(line.chords.length - line.lyrics.length);
       }
       line.lyrics.split("").forEach((v, i) => {
-        let chord = chords2.find((v2) => v2.i === i);
+        let chord = chords.find((v2) => v2.i === i);
         if (chord) {
           rendered.push({ chord: chord.c, len: pdf2.getTextWidth(curr) });
         }
