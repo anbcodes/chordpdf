@@ -18,7 +18,7 @@ process.exit(0)
 let input: string = '';
 try {
   args._.slice(0, -1).forEach(file => {
-    input += readFileSync(args._[0], 'utf-8') + '===';
+    input += readFileSync(file, 'utf-8') + '===';
   })
 } catch (e) {
   console.error("Input file not found:", args._[0]);
@@ -40,4 +40,4 @@ if (isNaN(+(fontsize ?? 13))) {
 
 const pdf = render(input, key, +(fontsize ?? 13))
 
-writeFileSync(args._[1], pdf.output());
+writeFileSync(args._.slice(-1)[0], pdf.output());

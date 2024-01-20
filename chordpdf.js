@@ -34357,7 +34357,7 @@ Valid options:
 var input = "";
 try {
   args._.slice(0, -1).forEach((file) => {
-    input += (0, import_fs.readFileSync)(args._[0], "utf-8") + "===";
+    input += (0, import_fs.readFileSync)(file, "utf-8") + "===";
   });
 } catch (e) {
   console.error("Input file not found:", args._[0]);
@@ -34374,7 +34374,7 @@ if (isNaN(+(fontsize ?? 13))) {
   process.exit(1);
 }
 var pdf = render(input, key, +(fontsize ?? 13));
-(0, import_fs.writeFileSync)(args._[1], pdf.output());
+(0, import_fs.writeFileSync)(args._.slice(-1)[0], pdf.output());
 /*! Bundled license information:
 
 html2canvas/dist/html2canvas.js:
