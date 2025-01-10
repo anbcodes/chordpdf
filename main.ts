@@ -21,7 +21,7 @@ try {
     input += readFileSync(file, 'utf-8') + '===';
   })
 } catch (e) {
-  console.error("Input file not found:", args._[0]);
+  console.error("Input file not found:", e);
   process.exit(1);
 }
 
